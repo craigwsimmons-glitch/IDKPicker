@@ -14,6 +14,14 @@
   <meta name="twitter:title" content="IDKPicker — We just pick." />
   <meta name="twitter:description" content="Every other tool gives you a list. IDKPicker just picks." />
   <link rel="canonical" href="https://idkpicker.com" />
+  <!-- Google Analytics 4 -->
+  <script async src="https://www.googletagmanager.com/gtag/js?id=G-21KXWHB7LR"></script>
+  <script>
+    window.dataLayer = window.dataLayer || [];
+    function gtag(){dataLayer.push(arguments);}
+    gtag('js', new Date());
+    gtag('config', 'G-21KXWHB7LR');
+  </script>
   <!-- PWA -->
   <link rel="manifest" href="/manifest.json" />
   <link rel="apple-touch-icon" href="/apple-touch-icon.png" />
@@ -673,7 +681,18 @@
     const resultCard = document.getElementById('resultCard');
     const locModal   = document.getElementById('locModal');
 
-    /* ── Random vibe placeholders ── */
+    /* ── Analytics helper ── */
+    function track(eventName, params = {}) {
+      if (typeof gtag === 'function') {
+        gtag('event', eventName, params);
+      }
+    }
+
+    // Track page engagement time on unload
+    const _pageStart = Date.now();
+    window.addEventListener('beforeunload', () => {
+      track('page_engagement', { seconds: Math.round((Date.now() - _pageStart) / 1000) });
+    });
     const vibePlaceholders = [
       'romantic date night, somewhere cozy and quiet…',
       'quick lunch solo, nothing too fancy…',
@@ -702,6 +721,7 @@
           btn.classList.add('active');
           btn.setAttribute('aria-pressed', 'true');
         }
+        track('budget_filter', { price_level: p, selected: selectedPrices.has(p) });
       });
     });
 
@@ -749,6 +769,7 @@
         locInstructions[browser] || locInstructions['other'];
       locModal.style.display = 'flex';
       document.getElementById('locModalClose').focus();
+      track('location_denied', { browser });
     }
 
     document.getElementById('locModalClose').addEventListener('click', () => {
@@ -782,16 +803,19 @@
           locBtn.textContent = '📍 Update';
           locBtn.setAttribute('aria-label', 'Update my current location');
           locBtn.disabled = false;
+          track('location_detected', { accuracy: Math.round(pos.coords.accuracy) });
         },
         err => {
           locBtn.textContent = '📍 Find Me';
           locBtn.disabled = false;
           if (err.code === 1) {
-            showLocModal(); // PERMISSION_DENIED → show helpful modal
+            showLocModal();
           } else if (err.code === 2) {
             showError('Could not detect your location. Make sure you have a signal and try again.');
+            track('location_error', { error: 'position_unavailable' });
           } else {
             showError('Location request timed out. Please try again.');
+            track('location_error', { error: 'timeout' });
           }
         },
         { timeout: 10000 }
@@ -872,11 +896,13 @@ Reply ONLY with valid JSON, no markdown, no extra text:
       const text = `IDKPicker chose: ${lastPick.name} 🍽️\n${lastPick.vicinity || ''}\nFind your next restaurant at https://idkpicker.com`;
       if (navigator.share) {
         navigator.share({ title: 'IDKPicker chose for me!', text }).catch(() => {});
+        track('share', { method: 'native', restaurant: lastPick.name });
       } else {
         navigator.clipboard.writeText(text).then(() => {
           const btn = document.getElementById('shareBtn');
           btn.textContent = '✅ Copied!';
           setTimeout(() => { btn.textContent = '📤 Share'; }, 2000);
+          track('share', { method: 'clipboard', restaurant: lastPick.name });
         });
       }
     });
@@ -909,10 +935,12 @@ Reply ONLY with valid JSON, no markdown, no extra text:
       const mapsLink = document.getElementById('rMapsLink');
       mapsLink.href = `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(restaurant.name)}&query_place_id=${restaurant.place_id}`;
       mapsLink.setAttribute('aria-label', `Get directions to ${restaurant.name}`);
+      mapsLink.onclick = () => track('get_directions', { restaurant: restaurant.name });
 
       const reserveLink = document.getElementById('rReserveLink');
       reserveLink.href = `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(restaurant.name + ' reservations')}&query_place_id=${restaurant.place_id}`;
       reserveLink.setAttribute('aria-label', `Reserve a table at ${restaurant.name}`);
+      reserveLink.onclick = () => track('reserve_table', { restaurant: restaurant.name });
 
       resultCard.classList.add('on');
       resultCard.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
@@ -930,8 +958,16 @@ Reply ONLY with valid JSON, no markdown, no extra text:
       if (!userLat || !userLng) {
         showError('Tap <strong>📍 Find Me</strong> first so we know where to search!');
         locBtn.focus();
+        track('pick_error', { reason: 'no_location' });
         return;
       }
+
+      const cuisine = document.getElementById('cuisine').value || 'any';
+      const radius  = radiusOverride || +document.getElementById('radius').value;
+      const vibe    = document.getElementById('vibe').value.trim();
+      const prices  = selectedPrices.size ? [...selectedPrices].sort().join(',') : 'any';
+
+      track('pick_started', { cuisine, radius_meters: radius, price_filter: prices, has_vibe: !!vibe });
 
       loading.classList.add('on');
       pickBtn.disabled = true;
@@ -943,14 +979,14 @@ Reply ONLY with valid JSON, no markdown, no extra text:
 
         // Auto-widen if no results
         if (!restaurants.length) {
-          const currentRadius = radiusOverride || +document.getElementById('radius').value;
-          const widenTo = currentRadius * 2;
+          const widenTo = radius * 2;
           if (widenTo <= 40000) {
             loadingMsg.textContent = 'Widening search radius…';
             restaurants = await searchNearby(widenTo);
             if (restaurants.length) {
               const miles = Math.round(widenTo / 1600);
               showError(`Nothing found nearby — widened search to ${miles} miles and found some options!`);
+              track('radius_auto_widened', { from: radius, to: widenTo });
             }
           }
         }
@@ -960,14 +996,24 @@ Reply ONLY with valid JSON, no markdown, no extra text:
         }
 
         loadingMsg.textContent = 'AI is picking your perfect match…';
-        const vibe = document.getElementById('vibe').value.trim();
         const { pick, reason } = await aiPick(restaurants, vibe);
 
         loading.classList.remove('on');
         renderResult(pick, reason);
+
+        track('pick_success', {
+          restaurant: pick.name,
+          cuisine,
+          rating: pick.rating || null,
+          price_level: pick.price_level || null,
+          is_open: pick.opening_hours?.open_now ?? null,
+          has_vibe: !!vibe,
+        });
+
       } catch (err) {
         loading.classList.remove('on');
         showError(err.message);
+        track('pick_error', { reason: err.message.substring(0, 100) });
       } finally {
         pickBtn.disabled = false;
         pickBtn.setAttribute('aria-busy', 'false');
@@ -975,8 +1021,14 @@ Reply ONLY with valid JSON, no markdown, no extra text:
     }
 
     pickBtn.addEventListener('click', () => doPick());
-    document.getElementById('pickAgainBtn').addEventListener('click', () => doPick());
+    document.getElementById('pickAgainBtn').addEventListener('click', () => {
+      track('pick_again', { previous_restaurant: lastPick?.name || 'unknown' });
+      doPick();
+    });
     document.getElementById('vibe').addEventListener('keydown', e => { if (e.key === 'Enter') doPick(); });
+    document.getElementById('cuisine').addEventListener('change', e => {
+      track('cuisine_selected', { cuisine: e.target.value || 'any' });
+    });
 
   })();
   </script>
