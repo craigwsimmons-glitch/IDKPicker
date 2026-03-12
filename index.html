@@ -348,6 +348,7 @@
     }
     .badge.hi { border-color: var(--accent2); color: #8B6000; background: var(--accent2-dim); }
     .badge.open { border-color: var(--green); color: #166534; background: rgba(34,197,94,0.1); }
+    .badge.closed-badge { border-color: #F59E0B; color: #92400E; background: rgba(245,158,11,0.1); }
 
     .result-addr {
       font-size: 0.875rem; color: var(--text-muted);
@@ -366,7 +367,7 @@
     }
     .ai-reason::before { content: '🤖 '; }
 
-    .result-actions { display: flex; gap: 0.625rem; }
+    .result-actions { display: grid; grid-template-columns: 1fr 1fr; gap: 0.625rem; }
 
     .btn-maps {
       flex: 1; display: block; text-align: center; text-decoration: none;
@@ -404,6 +405,57 @@
     .btn-again:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
 
     .hint { font-size: 0.72rem; color: var(--text-muted); font-weight: 600; margin-top: 0.25rem; display: block; line-height: 1.4; }
+
+    .btn-share {
+      background: transparent;
+      border: 2px solid var(--border-dark); color: var(--text-muted);
+      border-radius: var(--radius-sm); padding: 0.8rem 1rem;
+      font-family: 'Nunito', sans-serif; font-size: 0.875rem; font-weight: 700;
+      cursor: pointer; transition: all 0.15s; white-space: nowrap;
+    }
+    .btn-share:hover { border-color: var(--accent2); color: #8B6000; background: var(--accent2-dim); }
+    .btn-share:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
+
+    /* ── Modal ── */
+    .modal-overlay {
+      position: fixed; inset: 0; z-index: 1000;
+      background: rgba(26,17,8,0.55);
+      backdrop-filter: blur(4px);
+      display: flex; align-items: center; justify-content: center;
+      padding: 1.5rem;
+      animation: fadeIn 0.2s ease;
+    }
+    .modal-box {
+      background: var(--surface);
+      border-radius: var(--radius-lg);
+      padding: 2rem 1.75rem;
+      max-width: 400px; width: 100%;
+      box-shadow: 0 24px 60px rgba(0,0,0,0.2);
+      animation: popIn 0.3s cubic-bezier(0.34,1.56,0.64,1);
+      text-align: center;
+    }
+    .modal-icon { font-size: 2.5rem; margin-bottom: 0.75rem; }
+    .modal-title {
+      font-family: 'Fredoka', sans-serif;
+      font-size: 1.5rem; font-weight: 700;
+      color: var(--text); margin-bottom: 0.75rem;
+    }
+    .modal-body { font-size: 0.9rem; color: var(--text-mid); font-weight: 500; line-height: 1.6; margin-bottom: 1.25rem; }
+    .modal-steps {
+      background: var(--bg2); border-radius: var(--radius-sm);
+      padding: 1rem; margin-bottom: 1.25rem;
+      text-align: left; font-size: 0.85rem; font-weight: 600;
+      color: var(--text-mid); line-height: 1.8;
+    }
+    .modal-steps strong { color: var(--text); }
+    .modal-close {
+      background: var(--accent); color: #fff; border: none;
+      border-radius: var(--radius-sm); padding: 0.8rem 2rem;
+      font-family: 'Nunito', sans-serif; font-size: 0.925rem; font-weight: 700;
+      cursor: pointer; transition: all 0.15s; width: 100%;
+    }
+    .modal-close:hover { background: var(--accent-hover); }
+    .modal-close:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
 
     /* ── Footer ── */
     footer {
@@ -509,12 +561,12 @@
           </div>
 
           <div class="form-group full">
-            <label id="priceLbl">Budget <span class="optional">(tap to toggle)</span></label>
+            <label id="priceLbl">Budget <span class="optional">(tap to filter · none = any price)</span></label>
             <div class="price-group" role="group" aria-labelledby="priceLbl">
-              <button class="price-btn active" data-price="1" aria-pressed="true" aria-label="Include cheap restaurants">$</button>
-              <button class="price-btn active" data-price="2" aria-pressed="true" aria-label="Include moderate restaurants">$$</button>
-              <button class="price-btn active" data-price="3" aria-pressed="true" aria-label="Include expensive restaurants">$$$</button>
-              <button class="price-btn active" data-price="4" aria-pressed="true" aria-label="Include very expensive restaurants">$$$$</button>
+              <button class="price-btn" data-price="1" aria-pressed="false" aria-label="Include cheap restaurants">$</button>
+              <button class="price-btn" data-price="2" aria-pressed="false" aria-label="Include moderate restaurants">$$</button>
+              <button class="price-btn" data-price="3" aria-pressed="false" aria-label="Include expensive restaurants">$$$</button>
+              <button class="price-btn" data-price="4" aria-pressed="false" aria-label="Include very expensive restaurants">$$$$</button>
             </div>
           </div>
 
@@ -561,6 +613,9 @@
             <a class="btn-reserve" id="rReserveLink" href="#" target="_blank" rel="noopener noreferrer">
               🪑 Reserve a Table
             </a>
+            <button class="btn-share" id="shareBtn" aria-label="Share this restaurant pick">
+              📤 Share
+            </button>
             <button class="btn-again" id="pickAgainBtn" aria-label="Pick a different restaurant">
               🔄 Pick Again
             </button>
@@ -569,6 +624,17 @@
       </section>
 
     </main>
+
+    <!-- Location denied modal -->
+    <div id="locModal" class="modal-overlay" role="dialog" aria-modal="true" aria-labelledby="locModalTitle" style="display:none">
+      <div class="modal-box">
+        <div class="modal-icon">📍</div>
+        <h2 class="modal-title" id="locModalTitle">Location Access Needed</h2>
+        <p class="modal-body">IDKPicker needs your location to find restaurants near you. It looks like location access was blocked. Here's how to fix it:</p>
+        <div class="modal-steps" id="locModalSteps"></div>
+        <button class="modal-close" id="locModalClose">Got it, I'll try again</button>
+      </div>
+    </div>
 
     <footer role="contentinfo">
       <p>IDKPicker &mdash; Because deciding is exhausting.</p>
@@ -594,7 +660,8 @@
     'use strict';
 
     let userLat = null, userLng = null;
-    let selectedPrices = new Set([1, 2, 3, 4]);
+    let selectedPrices = new Set(); // empty = all prices
+    let lastPick = null;
 
     const locDot     = document.getElementById('locDot');
     const locText    = document.getElementById('locText');
@@ -604,17 +671,32 @@
     const loadingMsg = document.getElementById('loadingMsg');
     const errorMsg   = document.getElementById('errorMsg');
     const resultCard = document.getElementById('resultCard');
+    const locModal   = document.getElementById('locModal');
 
-    /* ── Price toggles ── */
+    /* ── Random vibe placeholders ── */
+    const vibePlaceholders = [
+      'romantic date night, somewhere cozy and quiet…',
+      'quick lunch solo, nothing too fancy…',
+      'loud group hangout, we want energy!',
+      'first date, want to impress but not try too hard…',
+      'celebrating something special tonight!',
+      'just really hungry and need food fast…',
+      'outdoor seating, warm evening vibes…',
+      'kids in tow, needs to be family friendly…',
+      'business lunch, professional atmosphere…',
+      'late night craving, what's still open?',
+    ];
+    document.getElementById('vibe').placeholder =
+      vibePlaceholders[Math.floor(Math.random() * vibePlaceholders.length)];
+
+    /* ── Price toggles — empty set = all prices ── */
     document.querySelectorAll('.price-btn').forEach(btn => {
       btn.addEventListener('click', () => {
         const p = +btn.dataset.price;
         if (selectedPrices.has(p)) {
-          if (selectedPrices.size > 1) {
-            selectedPrices.delete(p);
-            btn.classList.remove('active');
-            btn.setAttribute('aria-pressed', 'false');
-          }
+          selectedPrices.delete(p);
+          btn.classList.remove('active');
+          btn.setAttribute('aria-pressed', 'false');
         } else {
           selectedPrices.add(p);
           btn.classList.add('active');
@@ -623,9 +705,72 @@
       });
     });
 
+    /* ── Location denied modal ── */
+    function getBrowser() {
+      const ua = navigator.userAgent;
+      if (/CriOS/.test(ua)) return 'chrome-ios';
+      if (/FxiOS/.test(ua)) return 'firefox-ios';
+      if (/iPhone|iPad/.test(ua)) return 'safari-ios';
+      if (/Edg\//.test(ua)) return 'edge';
+      if (/Firefox/.test(ua)) return 'firefox';
+      if (/Chrome/.test(ua)) return 'chrome';
+      return 'other';
+    }
+
+    const locInstructions = {
+      'safari-ios': `<strong>On iPhone/iPad (Safari):</strong><br>
+        1. Go to <strong>Settings → Privacy & Security → Location Services</strong><br>
+        2. Scroll down to <strong>Safari</strong> → set to <strong>While Using</strong><br>
+        3. Come back and tap Find Me again`,
+      'chrome-ios': `<strong>On iPhone/iPad (Chrome):</strong><br>
+        1. Go to <strong>Settings → Chrome → Location</strong><br>
+        2. Set to <strong>While Using the App</strong><br>
+        3. Come back and tap Find Me again`,
+      'chrome': `<strong>On Chrome (desktop):</strong><br>
+        1. Click the <strong>🔒 lock icon</strong> in the address bar<br>
+        2. Click <strong>Location</strong> → change to <strong>Allow</strong><br>
+        3. Refresh the page and tap Find Me again`,
+      'firefox': `<strong>On Firefox:</strong><br>
+        1. Click the <strong>🔒 lock icon</strong> in the address bar<br>
+        2. Click the <strong>✕ next to Location: Blocked</strong> to remove the block<br>
+        3. Refresh the page and tap Find Me again`,
+      'edge': `<strong>On Edge:</strong><br>
+        1. Click the <strong>🔒 lock icon</strong> in the address bar<br>
+        2. Click <strong>Permissions for this site</strong><br>
+        3. Set <strong>Location</strong> to <strong>Allow</strong><br>
+        4. Refresh the page and tap Find Me again`,
+      'other': `<strong>To re-enable location:</strong><br>
+        Look for a <strong>🔒 lock icon</strong> in your browser's address bar, click it, and allow location access for this site. Then refresh and try again.`,
+    };
+
+    function showLocModal() {
+      const browser = getBrowser();
+      document.getElementById('locModalSteps').innerHTML =
+        locInstructions[browser] || locInstructions['other'];
+      locModal.style.display = 'flex';
+      document.getElementById('locModalClose').focus();
+    }
+
+    document.getElementById('locModalClose').addEventListener('click', () => {
+      locModal.style.display = 'none';
+      locBtn.focus();
+    });
+    locModal.addEventListener('click', e => {
+      if (e.target === locModal) locModal.style.display = 'none';
+    });
+    document.addEventListener('keydown', e => {
+      if (e.key === 'Escape' && locModal.style.display !== 'none') {
+        locModal.style.display = 'none';
+        locBtn.focus();
+      }
+    });
+
     /* ── Geolocation ── */
     locBtn.addEventListener('click', () => {
-      if (!navigator.geolocation) { showError('Geolocation is not supported by your browser.'); return; }
+      if (!navigator.geolocation) {
+        showError("Your browser doesn't support location. Try Chrome or Safari!");
+        return;
+      }
       locBtn.textContent = 'Detecting…';
       locBtn.disabled = true;
       navigator.geolocation.getCurrentPosition(
@@ -638,24 +783,33 @@
           locBtn.setAttribute('aria-label', 'Update my current location');
           locBtn.disabled = false;
         },
-        () => {
+        err => {
           locBtn.textContent = '📍 Find Me';
           locBtn.disabled = false;
-          showError('Location access denied. Please allow location permissions in your browser settings and try again.');
+          if (err.code === 1) {
+            showLocModal(); // PERMISSION_DENIED → show helpful modal
+          } else if (err.code === 2) {
+            showError('Could not detect your location. Make sure you have a signal and try again.');
+          } else {
+            showError('Location request timed out. Please try again.');
+          }
         },
         { timeout: 10000 }
       );
     });
 
     /* ── Search via Cloudflare Function ── */
-    async function searchNearby() {
-      const pricesArr = [...selectedPrices].sort();
-      const body = {
-        lat: userLat, lng: userLng,
-        radius: +document.getElementById('radius').value,
-        minprice: pricesArr[0] - 1,
-        maxprice: pricesArr[pricesArr.length - 1] - 1,
-      };
+    async function searchNearby(radiusOverride) {
+      const radius = radiusOverride || +document.getElementById('radius').value;
+      const body = { lat: userLat, lng: userLng, radius };
+
+      // Only send price filters if user has selected some
+      if (selectedPrices.size > 0) {
+        const pricesArr = [...selectedPrices].sort();
+        body.minprice = pricesArr[0] - 1;
+        body.maxprice = pricesArr[pricesArr.length - 1] - 1;
+      }
+
       const cuisine = document.getElementById('cuisine').value;
       if (cuisine) body.keyword = cuisine;
 
@@ -664,22 +818,20 @@
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(body),
       });
+      if (!resp.ok) throw new Error('Could not reach our restaurant search service. Try again in a moment!');
       const data = await resp.json();
       if (data.error) throw new Error(data.error);
-      if (data.status === 'ZERO_RESULTS' || !data.results?.length) {
-        throw new Error('No restaurants found nearby. Try a wider radius or different cuisine!');
-      }
-      return data.results;
+      return data.results || [];
     }
 
     /* ── AI pick via Cloudflare Function ── */
     async function aiPick(restaurants, vibe) {
       const pool = restaurants.slice(0, 20);
       const list = pool.map((r, i) =>
-        `${i + 1}. ${r.name} | ⭐ ${r.rating ?? 'N/A'} (${r.user_ratings_total ?? 0} reviews) | Price: ${'$'.repeat(r.price_level || 2)} | Tags: ${(r.types || []).slice(0, 4).join(', ')}`
+        `${i + 1}. ${r.name} | ⭐ ${r.rating ?? 'N/A'} (${r.user_ratings_total ?? 0} reviews) | Price: ${'$'.repeat(r.price_level || 2)} | Open: ${r.opening_hours?.open_now ?? 'unknown'} | Tags: ${(r.types || []).slice(0, 4).join(', ')}`
       ).join('\n');
 
-      const prompt = `You are IDKPicker, a fun and enthusiastic restaurant recommendation AI. Based on the user's vibe and the restaurant list, pick ONE restaurant and explain why in 1–2 fun, energetic sentences.
+      const prompt = `You are IDKPicker, a fun and enthusiastic restaurant recommendation AI. Based on the user's vibe and the restaurant list, pick ONE restaurant and explain why in 1–2 fun, energetic sentences. Prefer restaurants that are currently open when possible.
 
 User vibe: "${vibe || 'No specific vibe — just hungry!'}"
 
@@ -695,6 +847,7 @@ Reply ONLY with valid JSON, no markdown, no extra text:
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({ prompt }),
         });
+        if (!resp.ok) throw new Error('AI service unavailable');
         const data = await resp.json();
         if (data.error) throw new Error(data.error);
         const raw = data.content.map(c => c.text || '').join('').replace(/```json|```/g, '').trim();
@@ -702,6 +855,7 @@ Reply ONLY with valid JSON, no markdown, no extra text:
         const pick = pool[parsed.index - 1] || pool[0];
         return { pick, reason: parsed.reason };
       } catch (_) {
+        // Fallback: weighted random by rating
         const scored = pool.map(r => ({
           r, w: (r.rating || 3) * (r.user_ratings_total ? Math.log10(r.user_ratings_total + 1) : 1)
         }));
@@ -712,8 +866,24 @@ Reply ONLY with valid JSON, no markdown, no extra text:
       }
     }
 
+    /* ── Share result ── */
+    document.getElementById('shareBtn').addEventListener('click', () => {
+      if (!lastPick) return;
+      const text = `IDKPicker chose: ${lastPick.name} 🍽️\n${lastPick.vicinity || ''}\nFind your next restaurant at https://idkpicker.com`;
+      if (navigator.share) {
+        navigator.share({ title: 'IDKPicker chose for me!', text }).catch(() => {});
+      } else {
+        navigator.clipboard.writeText(text).then(() => {
+          const btn = document.getElementById('shareBtn');
+          btn.textContent = '✅ Copied!';
+          setTimeout(() => { btn.textContent = '📤 Share'; }, 2000);
+        });
+      }
+    });
+
     /* ── Render result ── */
     function renderResult(restaurant, reason) {
+      lastPick = restaurant;
       document.getElementById('rName').textContent = restaurant.name;
       const badges = document.getElementById('rBadges');
       badges.innerHTML = '';
@@ -730,7 +900,7 @@ Reply ONLY with valid JSON, no markdown, no extra text:
       }
       if (restaurant.opening_hours?.open_now !== undefined) {
         const open = restaurant.opening_hours.open_now;
-        badges.innerHTML += `<span class="badge ${open ? 'open' : ''}" aria-label="${open ? 'Open now' : 'Closed now'}">${open ? '✓ Open Now' : '✗ Closed'}</span>`;
+        badges.innerHTML += `<span class="badge ${open ? 'open' : 'closed-badge'}" aria-label="${open ? 'Open now' : 'May be closed — check hours'}">${open ? '✓ Open Now' : '⚠️ Check Hours'}</span>`;
       }
 
       document.getElementById('rAddr').innerHTML = `📍 ${restaurant.vicinity || ''}`;
@@ -740,7 +910,6 @@ Reply ONLY with valid JSON, no markdown, no extra text:
       mapsLink.href = `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(restaurant.name)}&query_place_id=${restaurant.place_id}`;
       mapsLink.setAttribute('aria-label', `Get directions to ${restaurant.name}`);
 
-      // Reserve button — links to Google Maps search for now
       const reserveLink = document.getElementById('rReserveLink');
       reserveLink.href = `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(restaurant.name + ' reservations')}&query_place_id=${restaurant.place_id}`;
       reserveLink.setAttribute('aria-label', `Reserve a table at ${restaurant.name}`);
@@ -750,16 +919,16 @@ Reply ONLY with valid JSON, no markdown, no extra text:
       document.getElementById('rName').focus();
     }
 
-    function showError(msg) { errorMsg.textContent = msg; errorMsg.classList.add('on'); errorMsg.focus(); }
+    function showError(msg) { errorMsg.innerHTML = msg; errorMsg.classList.add('on'); errorMsg.focus(); }
     function clearError()   { errorMsg.classList.remove('on'); }
 
-    /* ── Main flow ── */
-    async function doPick() {
+    /* ── Main flow with auto-widen ── */
+    async function doPick(radiusOverride) {
       clearError();
       resultCard.classList.remove('on');
 
       if (!userLat || !userLng) {
-        showError('Please tap "Find Me" first so we know where to search! 📍');
+        showError('Tap <strong>📍 Find Me</strong> first so we know where to search!');
         locBtn.focus();
         return;
       }
@@ -770,7 +939,25 @@ Reply ONLY with valid JSON, no markdown, no extra text:
 
       try {
         loadingMsg.textContent = 'Searching restaurants near you…';
-        const restaurants = await searchNearby();
+        let restaurants = await searchNearby(radiusOverride);
+
+        // Auto-widen if no results
+        if (!restaurants.length) {
+          const currentRadius = radiusOverride || +document.getElementById('radius').value;
+          const widenTo = currentRadius * 2;
+          if (widenTo <= 40000) {
+            loadingMsg.textContent = 'Widening search radius…';
+            restaurants = await searchNearby(widenTo);
+            if (restaurants.length) {
+              const miles = Math.round(widenTo / 1600);
+              showError(`Nothing found nearby — widened search to ${miles} miles and found some options!`);
+            }
+          }
+        }
+
+        if (!restaurants.length) {
+          throw new Error('No restaurants found in your area. Try a different cuisine or a wider radius!');
+        }
 
         loadingMsg.textContent = 'AI is picking your perfect match…';
         const vibe = document.getElementById('vibe').value.trim();
@@ -787,8 +974,8 @@ Reply ONLY with valid JSON, no markdown, no extra text:
       }
     }
 
-    pickBtn.addEventListener('click', doPick);
-    document.getElementById('pickAgainBtn').addEventListener('click', doPick);
+    pickBtn.addEventListener('click', () => doPick());
+    document.getElementById('pickAgainBtn').addEventListener('click', () => doPick());
     document.getElementById('vibe').addEventListener('keydown', e => { if (e.key === 'Enter') doPick(); });
 
   })();
