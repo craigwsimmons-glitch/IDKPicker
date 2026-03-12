@@ -14,6 +14,14 @@
   <meta name="twitter:title" content="IDKPicker — We just pick." />
   <meta name="twitter:description" content="Every other tool gives you a list. IDKPicker just picks." />
   <link rel="canonical" href="https://idkpicker.com" />
+  <!-- PWA -->
+  <link rel="manifest" href="/manifest.json" />
+  <link rel="apple-touch-icon" href="/apple-touch-icon.png" />
+  <meta name="apple-mobile-web-app-capable" content="yes" />
+  <meta name="apple-mobile-web-app-status-bar-style" content="default" />
+  <meta name="apple-mobile-web-app-title" content="IDKPicker" />
+  <meta name="mobile-web-app-capable" content="yes" />
+  <meta name="theme-color" content="#FF5C35" />
   <link rel="preconnect" href="https://fonts.googleapis.com" />
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
   <link href="https://fonts.googleapis.com/css2?family=Fredoka:wght@400;500;600;700&family=Nunito:wght@400;500;600;700;800&display=swap" rel="stylesheet" />
@@ -570,6 +578,16 @@
   </div>
 
   <div id="map" style="display:none" aria-hidden="true"></div>
+
+  <!-- PWA Service Worker -->
+  <script>
+    if ('serviceWorker' in navigator) {
+      window.addEventListener('load', () => {
+        navigator.serviceWorker.register('/sw.js')
+          .catch(err => console.log('SW registration failed:', err));
+      });
+    }
+  </script>
 
   <script>
   (function () {
