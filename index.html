@@ -835,8 +835,8 @@
 
       if (selectedPrices.size > 0) {
         const pricesArr = [...selectedPrices].sort();
-        body.minprice = pricesArr[0] - 1;
-        body.maxprice = pricesArr[pricesArr.length - 1] - 1;
+        body.minprice = pricesArr[0] ;
+        body.maxprice = pricesArr[pricesArr.length - 1] ;
       }
 
       const cuisine = document.getElementById('cuisine').value;
