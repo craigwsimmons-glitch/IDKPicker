@@ -832,8 +832,10 @@
       );
     }
 
-    // Auto-detect on page load (silent — no error modal on denial)
-    detectLocation(true);
+    // Auto-detect on page load
+    window.addEventListener('load', () => {
+      setTimeout(() => detectLocation(false), 800);
+    });
 
     locBtn.addEventListener('click', () => detectLocation(false));
 
