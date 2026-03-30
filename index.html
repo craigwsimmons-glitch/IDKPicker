@@ -1,8 +1,1074 @@
-Done! Here's how it works now:
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>IDKPicker — Every other tool gives you a list. We just pick.</title>
+  <meta name="description" content="IDKPicker uses AI and your location to pick ONE perfect restaurant — no lists, no scrolling, no overthinking. Just tell us your vibe and we decide." />
+  <meta name="keywords" content="restaurant picker, AI restaurant recommendation, where to eat, food picker, restaurant finder" />
+  <meta property="og:title" content="IDKPicker — We just pick." />
+  <meta property="og:description" content="Every other tool gives you a list. IDKPicker just picks the perfect restaurant for you." />
+  <meta property="og:url" content="https://idkpicker.com" />
+  <meta property="og:type" content="website" />
+  <meta name="twitter:card" content="summary_large_image" />
+  <meta name="twitter:title" content="IDKPicker — We just pick." />
+  <meta name="twitter:description" content="Every other tool gives you a list. IDKPicker just picks." />
+  <link rel="canonical" href="https://idkpicker.com" />
+  <!-- Google Analytics 4 -->
+  <script async src="https://www.googletagmanager.com/gtag/js?id=G-21KXWHB7LR"></script>
+  <script>
+    window.dataLayer = window.dataLayer || [];
+    function gtag(){dataLayer.push(arguments);}
+    gtag('js', new Date());
+    gtag('config', 'G-21KXWHB7LR');
+  </script>
+  <!-- PWA -->
+  <link rel="manifest" href="/manifest.json" />
+  <link rel="apple-touch-icon" href="/apple-touch-icon.png" />
+  <meta name="apple-mobile-web-app-capable" content="yes" />
+  <meta name="apple-mobile-web-app-status-bar-style" content="default" />
+  <meta name="apple-mobile-web-app-title" content="IDKPicker" />
+  <meta name="mobile-web-app-capable" content="yes" />
+  <meta name="theme-color" content="#FF5C35" />
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Fredoka:wght@400;500;600;700&family=Nunito:wght@400;500;600;700;800&display=swap" rel="stylesheet" />
+  <style>
+    :root {
+      --bg: #FFFBF5;
+      --bg2: #FFF5E9;
+      --surface: #FFFFFF;
+      --accent: #FF5C35;
+      --accent-hover: #FF3D0D;
+      --accent-dim: rgba(255,92,53,0.1);
+      --accent2: #FFB830;
+      --accent2-dim: rgba(255,184,48,0.15);
+      --green: #22C55E;
+      --text: #1A1108;
+      --text-mid: #5C4A35;
+      --text-muted: #9C856A;
+      --border: #F0E4D4;
+      --border-dark: #E0CEBC;
+      --shadow: 0 4px 24px rgba(255,92,53,0.08);
+      --shadow-lg: 0 12px 40px rgba(255,92,53,0.15);
+      --radius-sm: 10px;
+      --radius: 18px;
+      --radius-lg: 28px;
+    }
 
-- **On page load** — automatically asks for location permission right away, silently (no error popup if denied)
-- **If auto-detect succeeds** — green dot appears, ready to pick immediately
-- **If denied** — nothing shown, user can still tap **Find Me** which will show the helpful modal
-- **Find Me button** — still there, now shows the full error modal if location is blocked
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+    html { scroll-behavior: smooth; }
 
-Push to GitHub and it'll auto-detect on the next visit! 🎉
+    .skip-link {
+      position: absolute; top: -60px; left: 1rem;
+      background: var(--accent); color: #fff;
+      padding: 0.6rem 1rem; border-radius: 0 0 8px 8px;
+      font-weight: 700; font-size: 0.875rem;
+      z-index: 9999; transition: top 0.2s; text-decoration: none;
+    }
+    .skip-link:focus { top: 0; }
+
+    body {
+      font-family: 'Nunito', sans-serif;
+      background: var(--bg);
+      color: var(--text);
+      min-height: 100vh;
+      overflow-x: hidden;
+      line-height: 1.5;
+    }
+
+    /* Playful background blobs */
+    body::before {
+      content: '';
+      position: fixed; inset: 0;
+      background:
+        radial-gradient(ellipse 55% 45% at 5% 15%, rgba(255,184,48,0.18) 0%, transparent 65%),
+        radial-gradient(ellipse 45% 55% at 95% 85%, rgba(255,92,53,0.12) 0%, transparent 65%),
+        radial-gradient(ellipse 35% 35% at 85% 10%, rgba(255,184,48,0.1) 0%, transparent 60%);
+      pointer-events: none; z-index: 0;
+    }
+
+    .container {
+      max-width: 620px; margin: 0 auto;
+      padding: 2rem 1.25rem 5rem;
+      position: relative; z-index: 1;
+    }
+
+    /* ── Header ── */
+    header {
+      text-align: center;
+      padding: 1rem 0 2rem;
+      animation: fadeDown 0.5s ease both;
+    }
+
+    .logo-wrap {
+      display: inline-flex; align-items: center;
+      gap: 0.4rem; margin-bottom: 0.75rem;
+    }
+
+    .logo {
+      font-family: 'Fredoka', sans-serif;
+      font-size: clamp(3rem, 12vw, 5.5rem);
+      font-weight: 700;
+      letter-spacing: -0.02em;
+      line-height: 1;
+      color: var(--text);
+    }
+    .logo em { color: var(--accent); font-style: normal; }
+
+    .hero-line {
+      font-family: 'Fredoka', sans-serif;
+      font-size: clamp(1rem, 3.5vw, 1.35rem);
+      font-weight: 600;
+      color: var(--text-mid);
+      line-height: 1.4;
+      max-width: 400px;
+      margin: 0 auto 0.5rem;
+    }
+    .hero-line strong { color: var(--accent); }
+
+    .hero-sub {
+      font-size: 0.8rem;
+      color: var(--text-muted);
+      font-weight: 500;
+      letter-spacing: 0.06em;
+      text-transform: uppercase;
+    }
+
+    /* ── Food emoji strip ── */
+    .emoji-strip {
+      display: flex; justify-content: center; gap: 0.6rem;
+      font-size: 1.4rem; margin-bottom: 1.75rem;
+      animation: fadeUp 0.5s ease 0.1s both;
+      flex-wrap: wrap;
+    }
+    .emoji-strip span {
+      display: inline-block;
+      animation: wobble 3s ease-in-out infinite;
+    }
+    .emoji-strip span:nth-child(2) { animation-delay: 0.3s; }
+    .emoji-strip span:nth-child(3) { animation-delay: 0.6s; }
+    .emoji-strip span:nth-child(4) { animation-delay: 0.9s; }
+    .emoji-strip span:nth-child(5) { animation-delay: 1.2s; }
+    .emoji-strip span:nth-child(6) { animation-delay: 1.5s; }
+
+    /* ── Location bar ── */
+    .location-bar {
+      background: var(--surface);
+      border: 2px solid var(--border);
+      border-radius: var(--radius);
+      padding: 0.875rem 1.25rem;
+      display: flex; align-items: center;
+      justify-content: space-between; gap: 1rem;
+      margin-bottom: 0.875rem;
+      box-shadow: var(--shadow);
+      animation: fadeUp 0.5s ease 0.15s both;
+    }
+    .location-status { display: flex; align-items: center; gap: 0.6rem; font-size: 0.875rem; min-width: 0; font-weight: 600; }
+    .loc-dot {
+      width: 10px; height: 10px; border-radius: 50%;
+      background: var(--border-dark); flex-shrink: 0; transition: all 0.3s;
+    }
+    .loc-dot.on {
+      background: var(--green);
+      box-shadow: 0 0 0 3px rgba(34,197,94,0.2);
+      animation: breathe 2s ease-in-out infinite;
+    }
+    .loc-text { white-space: nowrap; overflow: hidden; text-overflow: ellipsis; color: var(--text-mid); }
+
+    .btn-loc {
+      background: var(--accent-dim);
+      border: 2px solid transparent;
+      color: var(--accent);
+      border-radius: var(--radius-sm);
+      padding: 0.5rem 1rem;
+      font-family: 'Nunito', sans-serif;
+      font-size: 0.82rem; font-weight: 700;
+      cursor: pointer; white-space: nowrap;
+      transition: all 0.15s; flex-shrink: 0;
+    }
+    .btn-loc:hover { background: var(--accent); color: #fff; }
+    .btn-loc:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
+    .btn-loc:disabled { opacity: 0.5; cursor: not-allowed; }
+
+    /* ── Preferences card ── */
+    .card {
+      background: var(--surface);
+      border: 2px solid var(--border);
+      border-radius: var(--radius);
+      padding: 1.5rem;
+      margin-bottom: 0.875rem;
+      box-shadow: var(--shadow);
+      animation: fadeUp 0.5s ease 0.2s both;
+    }
+    .card-title {
+      font-family: 'Fredoka', sans-serif;
+      font-size: 1rem; font-weight: 600;
+      color: var(--text-muted);
+      text-transform: uppercase; letter-spacing: 0.08em;
+      margin-bottom: 1.25rem;
+      display: flex; align-items: center; gap: 0.5rem;
+    }
+    .card-title::before {
+      content: ''; display: block; width: 4px; height: 1em;
+      background: var(--accent); border-radius: 4px; flex-shrink: 0;
+    }
+
+    .form-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 0.875rem; }
+    .form-group { display: flex; flex-direction: column; gap: 0.35rem; }
+    .form-group.full { grid-column: 1 / -1; }
+
+    label {
+      font-size: 0.72rem; font-weight: 700;
+      color: var(--text-muted);
+      text-transform: uppercase; letter-spacing: 0.08em;
+    }
+    label .optional { text-transform: none; font-weight: 500; letter-spacing: 0; font-size: 0.9em; }
+
+    .field {
+      background: var(--bg);
+      border: 2px solid var(--border);
+      color: var(--text);
+      border-radius: var(--radius-sm);
+      padding: 0.65rem 0.875rem;
+      font-family: 'Nunito', sans-serif;
+      font-size: 0.925rem; font-weight: 600;
+      width: 100%;
+      transition: border-color 0.15s, box-shadow 0.15s;
+      -webkit-appearance: none; appearance: none;
+    }
+    .field:focus { outline: none; border-color: var(--accent); box-shadow: 0 0 0 3px var(--accent-dim); }
+    .field::placeholder { color: var(--text-muted); font-weight: 500; }
+
+    select.field {
+      background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='8' viewBox='0 0 12 8'%3E%3Cpath d='M1 1l5 5 5-5' stroke='%239C856A' stroke-width='2' fill='none' stroke-linecap='round'/%3E%3C/svg%3E");
+      background-repeat: no-repeat; background-position: right 0.875rem center;
+      background-color: var(--bg);
+      padding-right: 2.25rem; cursor: pointer;
+    }
+
+    /* ── Price toggles ── */
+    .price-group { display: flex; gap: 0.5rem; }
+    .price-btn {
+      flex: 1; background: var(--bg);
+      border: 2px solid var(--border); color: var(--text-muted);
+      border-radius: var(--radius-sm); padding: 0.6rem 0.5rem;
+      font-family: 'Fredoka', sans-serif;
+      font-size: 1rem; font-weight: 600;
+      cursor: pointer; transition: all 0.15s; line-height: 1;
+    }
+    .price-btn:hover { border-color: var(--accent); color: var(--accent); }
+    .price-btn.active {
+      background: var(--accent); border-color: var(--accent);
+      color: #fff; transform: translateY(-1px);
+      box-shadow: 0 4px 12px rgba(255,92,53,0.3);
+    }
+    .price-btn:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
+
+    /* ── Pick button ── */
+    .btn-pick {
+      width: 100%;
+      background: var(--accent);
+      color: #fff; border: none;
+      border-radius: var(--radius);
+      padding: 1.1rem 2rem;
+      font-family: 'Fredoka', sans-serif;
+      font-size: 1.4rem; font-weight: 700;
+      cursor: pointer; transition: all 0.2s;
+      letter-spacing: 0.01em;
+      animation: fadeUp 0.5s ease 0.25s both;
+      box-shadow: 0 6px 24px rgba(255,92,53,0.35);
+      position: relative; overflow: hidden;
+    }
+    .btn-pick::after {
+      content: '';
+      position: absolute; inset: 0;
+      background: linear-gradient(135deg, rgba(255,255,255,0.15) 0%, transparent 60%);
+      pointer-events: none;
+    }
+    .btn-pick:hover:not(:disabled) {
+      background: var(--accent-hover);
+      transform: translateY(-3px);
+      box-shadow: 0 12px 32px rgba(255,92,53,0.45);
+    }
+    .btn-pick:active:not(:disabled) { transform: translateY(0); }
+    .btn-pick:focus-visible { outline: 3px solid var(--accent); outline-offset: 3px; }
+    .btn-pick:disabled { opacity: 0.5; cursor: not-allowed; box-shadow: none; }
+
+    /* ── Loading ── */
+    .loading { display: none; text-align: center; padding: 2.5rem 1rem; }
+    .loading.on { display: block; animation: fadeIn 0.3s ease; }
+    .loading-emoji {
+      font-size: 2.5rem; margin-bottom: 0.5rem;
+      display: block;
+      animation: spin-slow 1.5s linear infinite;
+    }
+    .loading p { color: var(--text-muted); font-size: 0.925rem; font-weight: 600; }
+
+    /* ── Error ── */
+    .error-msg {
+      display: none;
+      background: #FFF0EE; border: 2px solid #FFCDC7;
+      border-radius: var(--radius-sm); padding: 0.875rem 1rem;
+      font-size: 0.875rem; font-weight: 600; color: #C0392B;
+      margin-top: 0.875rem;
+    }
+    .error-msg.on { display: block; }
+
+    /* ── Result card ── */
+    .result-card {
+      display: none;
+      background: var(--surface);
+      border: 2px solid var(--border);
+      border-radius: var(--radius-lg);
+      overflow: hidden; margin-top: 1rem;
+      box-shadow: var(--shadow-lg);
+    }
+    .result-card.on { display: block; animation: popIn 0.5s cubic-bezier(0.34, 1.56, 0.64, 1); }
+
+    .result-header {
+      background: linear-gradient(135deg, var(--accent) 0%, #FF8C35 100%);
+      color: #fff; padding: 0.875rem 1.5rem;
+      display: flex; align-items: center; gap: 0.5rem;
+    }
+    .result-header-text {
+      font-family: 'Fredoka', sans-serif;
+      font-size: 0.85rem; font-weight: 600;
+      letter-spacing: 0.06em; text-transform: uppercase;
+    }
+
+    .result-body { padding: 1.5rem; }
+
+    .result-name {
+      font-family: 'Fredoka', sans-serif;
+      font-size: clamp(1.6rem, 5vw, 2.2rem);
+      font-weight: 700; line-height: 1.1;
+      color: var(--text);
+      margin-bottom: 0.75rem;
+    }
+
+    .badges { display: flex; flex-wrap: wrap; gap: 0.5rem; margin-bottom: 0.875rem; }
+    .badge {
+      background: var(--bg2);
+      border: 2px solid var(--border);
+      border-radius: 8px; padding: 0.25rem 0.7rem;
+      font-size: 0.8rem; font-weight: 700; color: var(--text-muted);
+    }
+    .badge.hi { border-color: var(--accent2); color: #8B6000; background: var(--accent2-dim); }
+    .badge.open { border-color: var(--green); color: #166534; background: rgba(34,197,94,0.1); }
+    .badge.closed-badge { border-color: #F59E0B; color: #92400E; background: rgba(245,158,11,0.1); }
+
+    .result-addr {
+      font-size: 0.875rem; color: var(--text-muted);
+      font-weight: 600; margin-bottom: 1rem;
+      display: flex; align-items: center; gap: 0.3rem;
+    }
+
+    .ai-reason {
+      background: var(--bg2);
+      border-left: 4px solid var(--accent);
+      border-radius: 0 var(--radius-sm) var(--radius-sm) 0;
+      padding: 0.875rem 1rem;
+      font-size: 0.9rem; line-height: 1.6;
+      margin-bottom: 1.25rem; color: var(--text-mid);
+      font-weight: 500;
+    }
+    .ai-reason::before { content: '🤖 '; }
+
+    .result-actions { display: grid; grid-template-columns: 1fr 1fr; gap: 0.625rem; }
+
+    .btn-maps {
+      flex: 1; display: block; text-align: center; text-decoration: none;
+      background: var(--accent); color: #fff;
+      border: none; border-radius: var(--radius-sm);
+      padding: 0.8rem 1rem;
+      font-family: 'Nunito', sans-serif; font-size: 0.875rem; font-weight: 700;
+      cursor: pointer; transition: all 0.15s;
+      box-shadow: 0 4px 12px rgba(255,92,53,0.25);
+    }
+    .btn-maps:hover { background: var(--accent-hover); transform: translateY(-1px); }
+    .btn-maps:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
+
+    .btn-reserve {
+      flex: 1; display: block; text-align: center; text-decoration: none;
+      background: var(--accent2-dim);
+      border: 2px solid var(--accent2);
+      color: #8B6000;
+      border-radius: var(--radius-sm);
+      padding: 0.8rem 1rem;
+      font-family: 'Nunito', sans-serif; font-size: 0.875rem; font-weight: 700;
+      cursor: pointer; transition: all 0.15s;
+    }
+    .btn-reserve:hover { background: var(--accent2); color: #fff; transform: translateY(-1px); }
+    .btn-reserve:focus-visible { outline: 2px solid var(--accent2); outline-offset: 2px; }
+
+    .btn-again {
+      background: transparent;
+      border: 2px solid var(--border-dark); color: var(--text-muted);
+      border-radius: var(--radius-sm); padding: 0.8rem 1rem;
+      font-family: 'Nunito', sans-serif; font-size: 0.875rem; font-weight: 700;
+      cursor: pointer; transition: all 0.15s; white-space: nowrap;
+    }
+    .btn-again:hover { border-color: var(--accent); color: var(--accent); }
+    .btn-again:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
+
+    .hint { font-size: 0.72rem; color: var(--text-muted); font-weight: 600; margin-top: 0.25rem; display: block; line-height: 1.4; }
+
+    .btn-share {
+      background: transparent;
+      border: 2px solid var(--border-dark); color: var(--text-muted);
+      border-radius: var(--radius-sm); padding: 0.8rem 1rem;
+      font-family: 'Nunito', sans-serif; font-size: 0.875rem; font-weight: 700;
+      cursor: pointer; transition: all 0.15s; white-space: nowrap;
+    }
+    .btn-share:hover { border-color: var(--accent2); color: #8B6000; background: var(--accent2-dim); }
+    .btn-share:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
+
+    /* ── Modal ── */
+    .modal-overlay {
+      position: fixed; inset: 0; z-index: 1000;
+      background: rgba(26,17,8,0.55);
+      backdrop-filter: blur(4px);
+      display: flex; align-items: center; justify-content: center;
+      padding: 1.5rem;
+      animation: fadeIn 0.2s ease;
+    }
+    .modal-box {
+      background: var(--surface);
+      border-radius: var(--radius-lg);
+      padding: 2rem 1.75rem;
+      max-width: 400px; width: 100%;
+      box-shadow: 0 24px 60px rgba(0,0,0,0.2);
+      animation: popIn 0.3s cubic-bezier(0.34,1.56,0.64,1);
+      text-align: center;
+    }
+    .modal-icon { font-size: 2.5rem; margin-bottom: 0.75rem; }
+    .modal-title {
+      font-family: 'Fredoka', sans-serif;
+      font-size: 1.5rem; font-weight: 700;
+      color: var(--text); margin-bottom: 0.75rem;
+    }
+    .modal-body { font-size: 0.9rem; color: var(--text-mid); font-weight: 500; line-height: 1.6; margin-bottom: 1.25rem; }
+    .modal-steps {
+      background: var(--bg2); border-radius: var(--radius-sm);
+      padding: 1rem; margin-bottom: 1.25rem;
+      text-align: left; font-size: 0.85rem; font-weight: 600;
+      color: var(--text-mid); line-height: 1.8;
+    }
+    .modal-steps strong { color: var(--text); }
+    .modal-close {
+      background: var(--accent); color: #fff; border: none;
+      border-radius: var(--radius-sm); padding: 0.8rem 2rem;
+      font-family: 'Nunito', sans-serif; font-size: 0.925rem; font-weight: 700;
+      cursor: pointer; transition: all 0.15s; width: 100%;
+    }
+    .modal-close:hover { background: var(--accent-hover); }
+    .modal-close:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
+
+    .hours-bar { display: none; font-size: 0.82rem; font-weight: 600; margin-bottom: 0.875rem; padding: 0.6rem 0.875rem; border-radius: var(--radius-sm); }
+    .hours-bar.on { display: block; }
+    .hours-warning { background: rgba(245,158,11,0.1); border: 1.5px solid #F59E0B; color: #92400E; }
+    .hours-ok      { background: rgba(34,197,94,0.08); border: 1.5px solid var(--green); color: #166534; }
+    .hours-unknown { background: var(--bg2); border: 1.5px solid var(--border); color: var(--text-muted); }
+    .hours-bar a   { color: inherit; text-decoration: underline; }
+    .hours-bar a:hover { opacity: 0.8; }
+
+    /* ── Footer ── */
+    footer {
+      text-align: center; padding-top: 3rem;
+      font-size: 0.75rem; color: var(--text-muted);
+      font-weight: 600;
+      animation: fadeUp 0.5s ease 0.35s both;
+    }
+    footer a { color: var(--accent); text-decoration: none; }
+    footer a:hover { text-decoration: underline; }
+
+    /* ── Keyframes ── */
+    @keyframes fadeDown  { from { opacity: 0; transform: translateY(-20px); } to { opacity: 1; transform: none; } }
+    @keyframes fadeUp    { from { opacity: 0; transform: translateY(20px);  } to { opacity: 1; transform: none; } }
+    @keyframes fadeIn    { from { opacity: 0; } to { opacity: 1; } }
+    @keyframes popIn     { from { opacity: 0; transform: scale(0.9) translateY(10px); } to { opacity: 1; transform: scale(1) translateY(0); } }
+    @keyframes breathe   { 0%,100% { opacity: 1; } 50% { opacity: 0.4; } }
+    @keyframes wobble    { 0%,100% { transform: rotate(0deg); } 25% { transform: rotate(-8deg); } 75% { transform: rotate(8deg); } }
+    @keyframes spin-slow { to { transform: rotate(360deg); } }
+
+    @media (max-width: 460px) {
+      .form-grid { grid-template-columns: 1fr; }
+      .form-group.full { grid-column: 1; }
+      .result-actions { flex-wrap: wrap; }
+      .btn-maps, .btn-reserve { flex: 1 1 45%; }
+      .btn-again { flex: 1 1 100%; }
+    }
+    @media (prefers-reduced-motion: reduce) {
+      *, *::before, *::after { animation-duration: 0.01ms !important; transition-duration: 0.01ms !important; }
+    }
+  </style>
+</head>
+<body>
+
+  <a href="#main" class="skip-link">Skip to main content</a>
+
+  <div class="container">
+
+    <header role="banner">
+      <div class="logo-wrap">
+        <div class="logo" aria-label="IDK Picker">IDK<em>Picker</em></div>
+      </div>
+      <p class="hero-line"><strong>Every other tool gives you a list.</strong><br>IDKPicker just picks.</p>
+      <p class="hero-sub">AI-powered · Location-based · Free</p>
+    </header>
+
+    <div class="emoji-strip" aria-hidden="true">
+      <span>🍕</span><span>🍣</span><span>🌮</span><span>🍔</span><span>🍜</span><span>🥩</span>
+    </div>
+
+    <main id="main" role="main">
+
+      <!-- Location -->
+      <div class="location-bar" role="region" aria-label="Location detection">
+        <div class="location-status">
+          <div class="loc-dot" id="locDot" aria-hidden="true"></div>
+          <span class="loc-text" id="locText" aria-live="polite">Where are you eating?</span>
+        </div>
+        <button class="btn-loc" id="locBtn" aria-label="Detect my current location using GPS">
+          📍 Find Me
+        </button>
+      </div>
+
+      <!-- Preferences -->
+      <div class="card" role="region" aria-label="Restaurant preferences">
+        <div class="card-title">Your Preferences</div>
+        <div class="form-grid">
+
+          <div class="form-group">
+            <label for="radius">How far?</label>
+            <select id="radius" class="field" aria-label="Select search radius">
+              <option value="800">0.5 miles</option>
+              <option value="1600" selected>1 mile</option>
+              <option value="3200">2 miles</option>
+              <option value="8000">5 miles</option>
+              <option value="16000">10 miles</option>
+              <option value="24000">15 miles</option>
+              <option value="32000">20 miles</option>
+              <option value="40000">25 miles</option>
+            </select>
+          </div>
+
+          <div class="form-group">
+            <label for="cuisine">What type?</label>
+            <select id="cuisine" class="field" aria-label="Select cuisine type">
+              <option value="">Any Cuisine 🌍</option>
+              <option value="american">American 🍔</option>
+              <option value="italian">Italian 🍝</option>
+              <option value="mexican">Mexican 🌮</option>
+              <option value="chinese">Chinese 🥡</option>
+              <option value="japanese">Japanese 🍱</option>
+              <option value="thai">Thai 🍜</option>
+              <option value="indian">Indian 🍛</option>
+              <option value="mediterranean">Mediterranean 🫒</option>
+              <option value="pizza">Pizza 🍕</option>
+              <option value="burgers">Burgers 🍔</option>
+              <option value="sushi">Sushi 🍣</option>
+              <option value="bbq">BBQ 🥩</option>
+              <option value="seafood">Seafood 🦞</option>
+              <option value="vegetarian">Vegetarian 🥗</option>
+              <option value="vegan">Vegan 🌱</option>
+            </select>
+          </div>
+
+          <div class="form-group full">
+            <label id="priceLbl">Budget <span class="optional">(tap to filter · none = any price)</span></label>
+            <div class="price-group" role="group" aria-labelledby="priceLbl">
+              <button class="price-btn" data-price="1" aria-pressed="false" aria-label="Include cheap restaurants">$</button>
+              <button class="price-btn" data-price="2" aria-pressed="false" aria-label="Include moderate restaurants">$$</button>
+              <button class="price-btn" data-price="3" aria-pressed="false" aria-label="Include expensive restaurants">$$$</button>
+              <button class="price-btn" data-price="4" aria-pressed="false" aria-label="Include very expensive restaurants">$$$$</button>
+            </div>
+          </div>
+
+          <div class="form-group full">
+            <label for="vibe">What's the vibe? <span class="optional">— AI uses this to personalize</span></label>
+            <input type="text" id="vibe" class="field"
+              placeholder="e.g. romantic date night, quick lunch solo, loud group hangout..."
+              aria-describedby="vibeHint" />
+            <span id="vibeHint" class="hint">The more detail you give, the better the pick. Hit Enter to go! 🎯</span>
+          </div>
+
+        </div>
+      </div>
+
+      <!-- CTA -->
+      <button class="btn-pick" id="pickBtn" aria-live="polite" aria-busy="false">
+        🎲 Pick My Restaurant
+      </button>
+
+      <!-- Loading -->
+      <div class="loading" id="loading" role="status" aria-live="polite" aria-label="Searching for restaurants">
+        <span class="loading-emoji" aria-hidden="true">🍽️</span>
+        <p id="loadingMsg">Finding restaurants near you...</p>
+      </div>
+
+      <!-- Error -->
+      <div class="error-msg" id="errorMsg" role="alert" aria-live="assertive" tabindex="-1"></div>
+
+      <!-- Result -->
+      <section class="result-card" id="resultCard" aria-live="polite" aria-label="Your restaurant recommendation">
+        <div class="result-header">
+          <span aria-hidden="true">✨</span>
+          <span class="result-header-text">IDKPicker chose for you</span>
+        </div>
+        <div class="result-body">
+          <h2 class="result-name" id="rName"></h2>
+          <div class="badges" id="rBadges" aria-label="Restaurant details"></div>
+          <p class="result-addr" id="rAddr"></p>
+          <div id="rHours" class="hours-bar"></div>
+          <blockquote class="ai-reason" id="rReason" aria-label="Why we picked this restaurant"></blockquote>
+          <div class="result-actions">
+            <a class="btn-maps" id="rMapsLink" href="#" target="_blank" rel="noopener noreferrer">
+              🗺️ Get Directions
+            </a>
+            <a class="btn-reserve" id="rReserveLink" href="#" target="_blank" rel="noopener noreferrer">
+              🪑 Reserve a Table
+            </a>
+            <button class="btn-share" id="shareBtn" aria-label="Share this restaurant pick">
+              📤 Share
+            </button>
+            <button class="btn-again" id="pickAgainBtn" aria-label="Pick a different restaurant">
+              🔄 Pick Again
+            </button>
+          </div>
+        </div>
+      </section>
+
+    </main>
+
+    <!-- Location denied modal -->
+    <div id="locModal" class="modal-overlay" role="dialog" aria-modal="true" aria-labelledby="locModalTitle" style="display:none">
+      <div class="modal-box">
+        <div class="modal-icon">📍</div>
+        <h2 class="modal-title" id="locModalTitle">Location Access Needed</h2>
+        <p class="modal-body">IDKPicker needs your location to find restaurants near you. It looks like location access was blocked. Here's how to fix it:</p>
+        <div class="modal-steps" id="locModalSteps"></div>
+        <button class="modal-close" id="locModalClose">Got it, I'll try again</button>
+      </div>
+    </div>
+
+    <footer role="contentinfo">
+      <p>IDKPicker &mdash; Because deciding is exhausting.</p>
+      <p style="margin-top:0.3rem">Powered by Google Places &amp; Claude AI &nbsp;·&nbsp; <a href="https://idkpicker.com">idkpicker.com</a></p>
+    </footer>
+
+  </div>
+
+  <div id="map" style="display:none" aria-hidden="true"></div>
+
+  <!-- PWA Service Worker -->
+  <script>
+    if ('serviceWorker' in navigator) {
+      window.addEventListener('load', () => {
+        navigator.serviceWorker.register('/sw.js')
+          .catch(err => console.log('SW registration failed:', err));
+      });
+    }
+  </script>
+
+  <script>
+  (function () {
+    'use strict';
+
+    let userLat = null, userLng = null;
+    let selectedPrices = new Set(); // empty = all prices
+    let lastPick = null;
+    let rejectedPlaceIds = new Set(); // track rejected restaurants
+
+    const locDot     = document.getElementById('locDot');
+    const locText    = document.getElementById('locText');
+    const locBtn     = document.getElementById('locBtn');
+    const pickBtn    = document.getElementById('pickBtn');
+    const loading    = document.getElementById('loading');
+    const loadingMsg = document.getElementById('loadingMsg');
+    const errorMsg   = document.getElementById('errorMsg');
+    const resultCard = document.getElementById('resultCard');
+    const locModal   = document.getElementById('locModal');
+
+    /* ── Analytics helper ── */
+    function track(eventName, params = {}) {
+      if (typeof gtag === 'function') {
+        gtag('event', eventName, params);
+      }
+    }
+
+    // Track page engagement time on unload
+    const _pageStart = Date.now();
+    window.addEventListener('beforeunload', () => {
+      track('page_engagement', { seconds: Math.round((Date.now() - _pageStart) / 1000) });
+    });
+    const vibePlaceholders = [
+      'romantic date night, somewhere cozy and quiet…',
+      'quick lunch solo, nothing too fancy…',
+      'loud group hangout, we want energy!',
+      'first date, want to impress but not try too hard…',
+      'celebrating something special tonight!',
+      'just really hungry and need food fast…',
+      'outdoor seating, warm evening vibes…',
+      'kids in tow, needs to be family friendly…',
+      'business lunch, professional atmosphere…',
+      'late night craving, what's still open?',
+    ];
+    document.getElementById('vibe').placeholder =
+      vibePlaceholders[Math.floor(Math.random() * vibePlaceholders.length)];
+
+    /* ── Price toggles — empty set = all prices ── */
+    document.querySelectorAll('.price-btn').forEach(btn => {
+      btn.addEventListener('click', () => {
+        const p = +btn.dataset.price;
+        if (selectedPrices.has(p)) {
+          selectedPrices.delete(p);
+          btn.classList.remove('active');
+          btn.setAttribute('aria-pressed', 'false');
+        } else {
+          selectedPrices.add(p);
+          btn.classList.add('active');
+          btn.setAttribute('aria-pressed', 'true');
+        }
+        track('budget_filter', { price_level: p, selected: selectedPrices.has(p) });
+      });
+    });
+
+    /* ── Location denied modal ── */
+    function getBrowser() {
+      const ua = navigator.userAgent;
+      if (/CriOS/.test(ua)) return 'chrome-ios';
+      if (/FxiOS/.test(ua)) return 'firefox-ios';
+      if (/iPhone|iPad/.test(ua)) return 'safari-ios';
+      if (/Edg\//.test(ua)) return 'edge';
+      if (/Firefox/.test(ua)) return 'firefox';
+      if (/Chrome/.test(ua)) return 'chrome';
+      return 'other';
+    }
+
+    const locInstructions = {
+      'safari-ios': `<strong>On iPhone/iPad (Safari):</strong><br>
+        1. Go to <strong>Settings → Privacy & Security → Location Services</strong><br>
+        2. Scroll down to <strong>Safari</strong> → set to <strong>While Using</strong><br>
+        3. Come back and tap Find Me again`,
+      'chrome-ios': `<strong>On iPhone/iPad (Chrome):</strong><br>
+        1. Go to <strong>Settings → Chrome → Location</strong><br>
+        2. Set to <strong>While Using the App</strong><br>
+        3. Come back and tap Find Me again`,
+      'chrome': `<strong>On Chrome (desktop):</strong><br>
+        1. Click the <strong>🔒 lock icon</strong> in the address bar<br>
+        2. Click <strong>Location</strong> → change to <strong>Allow</strong><br>
+        3. Refresh the page and tap Find Me again`,
+      'firefox': `<strong>On Firefox:</strong><br>
+        1. Click the <strong>🔒 lock icon</strong> in the address bar<br>
+        2. Click the <strong>✕ next to Location: Blocked</strong> to remove the block<br>
+        3. Refresh the page and tap Find Me again`,
+      'edge': `<strong>On Edge:</strong><br>
+        1. Click the <strong>🔒 lock icon</strong> in the address bar<br>
+        2. Click <strong>Permissions for this site</strong><br>
+        3. Set <strong>Location</strong> to <strong>Allow</strong><br>
+        4. Refresh the page and tap Find Me again`,
+      'other': `<strong>To re-enable location:</strong><br>
+        Look for a <strong>🔒 lock icon</strong> in your browser's address bar, click it, and allow location access for this site. Then refresh and try again.`,
+    };
+
+    function showLocModal() {
+      const browser = getBrowser();
+      document.getElementById('locModalSteps').innerHTML =
+        locInstructions[browser] || locInstructions['other'];
+      locModal.style.display = 'flex';
+      document.getElementById('locModalClose').focus();
+      track('location_denied', { browser });
+    }
+
+    document.getElementById('locModalClose').addEventListener('click', () => {
+      locModal.style.display = 'none';
+      locBtn.focus();
+    });
+    locModal.addEventListener('click', e => {
+      if (e.target === locModal) locModal.style.display = 'none';
+    });
+    document.addEventListener('keydown', e => {
+      if (e.key === 'Escape' && locModal.style.display !== 'none') {
+        locModal.style.display = 'none';
+        locBtn.focus();
+      }
+    });
+
+    /* ── Geolocation (shared function) ── */
+    function detectLocation(silent = false) {
+      if (!navigator.geolocation) {
+        if (!silent) showError("Your browser doesn't support location. Try Chrome or Safari!");
+        return;
+      }
+      locBtn.textContent = 'Detecting…';
+      locBtn.disabled = true;
+      navigator.geolocation.getCurrentPosition(
+        pos => {
+          userLat = pos.coords.latitude;
+          userLng = pos.coords.longitude;
+          locDot.classList.add('on');
+          locText.textContent = `Got it! (${userLat.toFixed(3)}, ${userLng.toFixed(3)})`;
+          locBtn.textContent = '📍 Update';
+          locBtn.setAttribute('aria-label', 'Update my current location');
+          locBtn.disabled = false;
+          track('location_detected', { accuracy: Math.round(pos.coords.accuracy), auto: silent });
+        },
+        err => {
+          locBtn.textContent = '📍 Find Me';
+          locBtn.disabled = false;
+          if (err.code === 1) {
+            if (!silent) showLocModal();
+          } else if (err.code === 2) {
+            if (!silent) showError('Could not detect your location. Make sure you have a signal and try again.');
+            track('location_error', { error: 'position_unavailable' });
+          } else {
+            if (!silent) showError('Location request timed out. Please try again.');
+            track('location_error', { error: 'timeout' });
+          }
+        },
+        { timeout: 10000 }
+      );
+    }
+
+    // Auto-detect on page load (silent — no error modal on denial)
+    detectLocation(true);
+
+    locBtn.addEventListener('click', () => detectLocation(false));
+
+    /* ── Search via Cloudflare Function ── */
+    async function searchNearby(radiusOverride) {
+      const radius = radiusOverride || +document.getElementById('radius').value;
+      const body = { lat: userLat, lng: userLng, radius };
+
+      // Only send price filters if user has selected some
+      if (selectedPrices.size > 0) {
+        const pricesArr = [...selectedPrices].sort();
+        body.minprice = pricesArr[0];
+        body.maxprice = pricesArr[pricesArr.length - 1];
+      }
+
+      const cuisine = document.getElementById('cuisine').value;
+      if (cuisine) body.keyword = cuisine;
+
+      const resp = await fetch('/api/places', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(body),
+      });
+      if (!resp.ok) throw new Error('Could not reach our restaurant search service. Try again in a moment!');
+      const data = await resp.json();
+      if (data.error) throw new Error(data.error);
+      return data.results || [];
+    }
+
+    /* ── AI pick via Cloudflare Function ── */
+    async function aiPick(restaurants, vibe) {
+      // Filter out previously rejected restaurants unless it's all we have
+      const fresh = restaurants.filter(r => !rejectedPlaceIds.has(r.place_id));
+      const pool = (fresh.length > 0 ? fresh : restaurants).slice(0, 20);
+      const list = pool.map((r, i) =>
+        `${i + 1}. ${r.name} | ⭐ ${r.rating ?? 'N/A'} (${r.user_ratings_total ?? 0} reviews) | Price: ${'$'.repeat(r.price_level || 2)} | Open: ${r.opening_hours?.open_now ?? 'unknown'} | Tags: ${(r.types || []).slice(0, 4).join(', ')}`
+      ).join('\n');
+
+      const prompt = `You are IDKPicker, a fun and enthusiastic restaurant recommendation AI. Based on the user's vibe and the restaurant list, pick ONE restaurant and explain why in 1–2 fun, energetic sentences. Prefer restaurants that are currently open when possible.
+
+User vibe: "${vibe || 'No specific vibe — just hungry!'}"
+
+Nearby restaurants:
+${list}
+
+Reply ONLY with valid JSON, no markdown, no extra text:
+{"index": <1-${pool.length}>, "reason": "<1-2 fun sentences explaining why this is THE pick>"}`;
+
+      try {
+        const resp = await fetch('/api/pick', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ prompt }),
+        });
+        if (!resp.ok) throw new Error('AI service unavailable');
+        const data = await resp.json();
+        if (data.error) throw new Error(data.error);
+        const raw = data.content.map(c => c.text || '').join('').replace(/```json|```/g, '').trim();
+        const parsed = JSON.parse(raw);
+        const pick = pool[parsed.index - 1] || pool[0];
+        return { pick, reason: parsed.reason };
+      } catch (_) {
+        // Fallback: weighted random by rating
+        const scored = pool.map(r => ({
+          r, w: (r.rating || 3) * (r.user_ratings_total ? Math.log10(r.user_ratings_total + 1) : 1)
+        }));
+        const total = scored.reduce((a, b) => a + b.w, 0);
+        let rand = Math.random() * total;
+        const pick = scored.find(s => (rand -= s.w) <= 0)?.r || pool[0];
+        return { pick, reason: 'Picked based on top ratings and popularity near you!' };
+      }
+    }
+
+    /* ── Share result ── */
+    document.getElementById('shareBtn').addEventListener('click', () => {
+      if (!lastPick) return;
+      const text = `IDKPicker chose: ${lastPick.name} 🍽️\n${lastPick.vicinity || ''}\nFind your next restaurant at https://idkpicker.com`;
+      if (navigator.share) {
+        navigator.share({ title: 'IDKPicker chose for me!', text }).catch(() => {});
+        track('share', { method: 'native', restaurant: lastPick.name });
+      } else {
+        navigator.clipboard.writeText(text).then(() => {
+          const btn = document.getElementById('shareBtn');
+          btn.textContent = '✅ Copied!';
+          setTimeout(() => { btn.textContent = '📤 Share'; }, 2000);
+          track('share', { method: 'clipboard', restaurant: lastPick.name });
+        });
+      }
+    });
+
+    /* ── Render result ── */
+    function renderResult(restaurant, reason) {
+      lastPick = restaurant;
+      document.getElementById('rName').textContent = restaurant.name;
+      const badges = document.getElementById('rBadges');
+      badges.innerHTML = '';
+
+      if (restaurant.rating) {
+        const stars = '★'.repeat(Math.round(restaurant.rating)) + '☆'.repeat(5 - Math.round(restaurant.rating));
+        badges.innerHTML += `<span class="badge hi" aria-label="Rating: ${restaurant.rating} out of 5">${restaurant.rating} ${stars}</span>`;
+      }
+      if (restaurant.user_ratings_total) {
+        badges.innerHTML += `<span class="badge" aria-label="${restaurant.user_ratings_total} reviews">${restaurant.user_ratings_total.toLocaleString()} reviews</span>`;
+      }
+      if (restaurant.price_level) {
+        badges.innerHTML += `<span class="badge" aria-label="Price: ${'$'.repeat(restaurant.price_level)}">${'$'.repeat(restaurant.price_level)}</span>`;
+      }
+      if (restaurant.opening_hours?.open_now !== undefined) {
+        const open = restaurant.opening_hours.open_now;
+        badges.innerHTML += `<span class="badge ${open ? 'open' : 'closed-badge'}" aria-label="${open ? 'Open now' : 'May be closed — check hours'}">${open ? '✓ Open Now' : '⚠️ May Be Closed'}</span>`;
+      } else {
+        badges.innerHTML += `<span class="badge" aria-label="Hours unknown">🕐 Hours Unknown</span>`;
+      }
+
+      // Hours link
+      const hoursEl = document.getElementById('rHours');
+      const mapsHoursUrl = `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(restaurant.name)}&query_place_id=${restaurant.place_id}`;
+      if (restaurant.opening_hours?.open_now === false) {
+        hoursEl.innerHTML = `⚠️ This place may be closed right now. <a href="${mapsHoursUrl}" target="_blank" rel="noopener noreferrer">Check hours on Google Maps →</a>`;
+        hoursEl.className = 'hours-warning on';
+      } else if (restaurant.opening_hours?.open_now === true) {
+        hoursEl.innerHTML = `✓ Open now · <a href="${mapsHoursUrl}" target="_blank" rel="noopener noreferrer">See full hours on Google Maps →</a>`;
+        hoursEl.className = 'hours-ok on';
+      } else {
+        hoursEl.innerHTML = `🕐 Hours not available · <a href="${mapsHoursUrl}" target="_blank" rel="noopener noreferrer">Check Google Maps →</a>`;
+        hoursEl.className = 'hours-unknown on';
+      }
+
+      document.getElementById('rAddr').innerHTML = `📍 ${restaurant.vicinity || ''}`;
+      document.getElementById('rReason').textContent = reason;
+
+      const mapsLink = document.getElementById('rMapsLink');
+      mapsLink.href = `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(restaurant.name)}&query_place_id=${restaurant.place_id}`;
+      mapsLink.setAttribute('aria-label', `Get directions to ${restaurant.name}`);
+      mapsLink.onclick = () => track('get_directions', { restaurant: restaurant.name });
+
+      const reserveLink = document.getElementById('rReserveLink');
+      reserveLink.href = `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(restaurant.name + ' reservations')}&query_place_id=${restaurant.place_id}`;
+      reserveLink.setAttribute('aria-label', `Reserve a table at ${restaurant.name}`);
+      reserveLink.onclick = () => track('reserve_table', { restaurant: restaurant.name });
+
+      resultCard.classList.add('on');
+      resultCard.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+      document.getElementById('rName').focus();
+    }
+    function showError(msg) { errorMsg.innerHTML = msg; errorMsg.classList.add('on'); errorMsg.focus(); }
+    function clearError()   { errorMsg.classList.remove('on'); }
+
+    /* ── Main flow with auto-widen ── */
+    async function doPick(radiusOverride) {
+      clearError();
+      resultCard.classList.remove('on');
+
+      if (!userLat || !userLng) {
+        showError('Tap <strong>📍 Find Me</strong> first so we know where to search!');
+        locBtn.focus();
+        track('pick_error', { reason: 'no_location' });
+        return;
+      }
+
+      const cuisine = document.getElementById('cuisine').value || 'any';
+      const radius  = radiusOverride || +document.getElementById('radius').value;
+      const vibe    = document.getElementById('vibe').value.trim();
+      const prices  = selectedPrices.size ? [...selectedPrices].sort().join(',') : 'any';
+
+      track('pick_started', { cuisine, radius_meters: radius, price_filter: prices, has_vibe: !!vibe });
+
+      loading.classList.add('on');
+      pickBtn.disabled = true;
+      pickBtn.setAttribute('aria-busy', 'true');
+
+      try {
+        loadingMsg.textContent = 'Searching restaurants near you…';
+        let restaurants = await searchNearby(radiusOverride);
+
+        // Auto-widen if no results
+        if (!restaurants.length) {
+          const widenTo = radius * 2;
+          if (widenTo <= 40000) {
+            loadingMsg.textContent = 'Widening search radius…';
+            restaurants = await searchNearby(widenTo);
+            if (restaurants.length) {
+              const miles = Math.round(widenTo / 1600);
+              showError(`Nothing found nearby — widened search to ${miles} miles and found some options!`);
+              track('radius_auto_widened', { from: radius, to: widenTo });
+            }
+          }
+        }
+
+        if (!restaurants.length) {
+          throw new Error('No restaurants found in your area. Try a different cuisine or a wider radius!');
+        }
+
+        loadingMsg.textContent = 'AI is picking your perfect match…';
+        const { pick, reason } = await aiPick(restaurants, vibe);
+
+        loading.classList.remove('on');
+        renderResult(pick, reason);
+
+        track('pick_success', {
+          restaurant: pick.name,
+          cuisine,
+          rating: pick.rating || null,
+          price_level: pick.price_level || null,
+          is_open: pick.opening_hours?.open_now ?? null,
+          has_vibe: !!vibe,
+        });
+
+      } catch (err) {
+        loading.classList.remove('on');
+        showError(err.message);
+        track('pick_error', { reason: err.message.substring(0, 100) });
+      } finally {
+        pickBtn.disabled = false;
+        pickBtn.setAttribute('aria-busy', 'false');
+      }
+    }
+
+    document.getElementById('radius').addEventListener('change', () => rejectedPlaceIds.clear());
+    pickBtn.addEventListener('click', () => { rejectedPlaceIds.clear(); doPick(); });
+    document.getElementById('pickAgainBtn').addEventListener('click', () => {
+      if (lastPick?.place_id) rejectedPlaceIds.add(lastPick.place_id);
+      track('pick_again', { previous_restaurant: lastPick?.name || 'unknown', rejected_count: rejectedPlaceIds.size });
+      doPick();
+    });
+    document.getElementById('vibe').addEventListener('keydown', e => {
+      if (e.key === 'Enter') { rejectedPlaceIds.clear(); doPick(); }
+    });
+    document.getElementById('cuisine').addEventListener('change', e => {
+      rejectedPlaceIds.clear();
+      track('cuisine_selected', { cuisine: e.target.value || 'any' });
+    });
+
+  })();
+  </script>
+
+</body>
+</html>
