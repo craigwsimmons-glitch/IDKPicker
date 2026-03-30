@@ -1,14 +1,6 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <!-- Google tag (gtag.js) — single instance -->
-  <script async src="https://www.googletagmanager.com/gtag/js?id=G-21KXWHB7LR"></script>
-  <script>
-    window.dataLayer = window.dataLayer || [];
-    function gtag(){dataLayer.push(arguments);}
-    gtag('js', new Date());
-    gtag('config', 'G-21KXWHB7LR');
-  </script>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>IDKPicker — Every other tool gives you a list. We just pick.</title>
@@ -22,6 +14,14 @@
   <meta name="twitter:title" content="IDKPicker — We just pick." />
   <meta name="twitter:description" content="Every other tool gives you a list. IDKPicker just picks." />
   <link rel="canonical" href="https://idkpicker.com" />
+  <!-- Google Analytics 4 -->
+  <script async src="https://www.googletagmanager.com/gtag/js?id=G-21KXWHB7LR"></script>
+  <script>
+    window.dataLayer = window.dataLayer || [];
+    function gtag(){dataLayer.push(arguments);}
+    gtag('js', new Date());
+    gtag('config', 'G-21KXWHB7LR');
+  </script>
   <!-- PWA -->
   <link rel="manifest" href="/manifest.json" />
   <link rel="apple-touch-icon" href="/apple-touch-icon.png" />
@@ -77,6 +77,7 @@
       line-height: 1.5;
     }
 
+    /* Playful background blobs */
     body::before {
       content: '';
       position: fixed; inset: 0;
@@ -93,6 +94,7 @@
       position: relative; z-index: 1;
     }
 
+    /* ── Header ── */
     header {
       text-align: center;
       padding: 1rem 0 2rem;
@@ -133,6 +135,7 @@
       text-transform: uppercase;
     }
 
+    /* ── Food emoji strip ── */
     .emoji-strip {
       display: flex; justify-content: center; gap: 0.6rem;
       font-size: 1.4rem; margin-bottom: 1.75rem;
@@ -149,6 +152,7 @@
     .emoji-strip span:nth-child(5) { animation-delay: 1.2s; }
     .emoji-strip span:nth-child(6) { animation-delay: 1.5s; }
 
+    /* ── Location bar ── */
     .location-bar {
       background: var(--surface);
       border: 2px solid var(--border);
@@ -187,6 +191,7 @@
     .btn-loc:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
     .btn-loc:disabled { opacity: 0.5; cursor: not-allowed; }
 
+    /* ── Preferences card ── */
     .card {
       background: var(--surface);
       border: 2px solid var(--border);
@@ -242,6 +247,7 @@
       padding-right: 2.25rem; cursor: pointer;
     }
 
+    /* ── Price toggles ── */
     .price-group { display: flex; gap: 0.5rem; }
     .price-btn {
       flex: 1; background: var(--bg);
@@ -259,6 +265,7 @@
     }
     .price-btn:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
 
+    /* ── Pick button ── */
     .btn-pick {
       width: 100%;
       background: var(--accent);
@@ -288,6 +295,7 @@
     .btn-pick:focus-visible { outline: 3px solid var(--accent); outline-offset: 3px; }
     .btn-pick:disabled { opacity: 0.5; cursor: not-allowed; box-shadow: none; }
 
+    /* ── Loading ── */
     .loading { display: none; text-align: center; padding: 2.5rem 1rem; }
     .loading.on { display: block; animation: fadeIn 0.3s ease; }
     .loading-emoji {
@@ -297,6 +305,7 @@
     }
     .loading p { color: var(--text-muted); font-size: 0.925rem; font-weight: 600; }
 
+    /* ── Error ── */
     .error-msg {
       display: none;
       background: #FFF0EE; border: 2px solid #FFCDC7;
@@ -306,6 +315,7 @@
     }
     .error-msg.on { display: block; }
 
+    /* ── Result card ── */
     .result-card {
       display: none;
       background: var(--surface);
@@ -414,6 +424,7 @@
     .btn-share:hover { border-color: var(--accent2); color: #8B6000; background: var(--accent2-dim); }
     .btn-share:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
 
+    /* ── Modal ── */
     .modal-overlay {
       position: fixed; inset: 0; z-index: 1000;
       background: rgba(26,17,8,0.55);
@@ -454,6 +465,15 @@
     .modal-close:hover { background: var(--accent-hover); }
     .modal-close:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
 
+    .hours-bar { display: none; font-size: 0.82rem; font-weight: 600; margin-bottom: 0.875rem; padding: 0.6rem 0.875rem; border-radius: var(--radius-sm); }
+    .hours-bar.on { display: block; }
+    .hours-warning { background: rgba(245,158,11,0.1); border: 1.5px solid #F59E0B; color: #92400E; }
+    .hours-ok      { background: rgba(34,197,94,0.08); border: 1.5px solid var(--green); color: #166534; }
+    .hours-unknown { background: var(--bg2); border: 1.5px solid var(--border); color: var(--text-muted); }
+    .hours-bar a   { color: inherit; text-decoration: underline; }
+    .hours-bar a:hover { opacity: 0.8; }
+
+    /* ── Footer ── */
     footer {
       text-align: center; padding-top: 3rem;
       font-size: 0.75rem; color: var(--text-muted);
@@ -463,6 +483,7 @@
     footer a { color: var(--accent); text-decoration: none; }
     footer a:hover { text-decoration: underline; }
 
+    /* ── Keyframes ── */
     @keyframes fadeDown  { from { opacity: 0; transform: translateY(-20px); } to { opacity: 1; transform: none; } }
     @keyframes fadeUp    { from { opacity: 0; transform: translateY(20px);  } to { opacity: 1; transform: none; } }
     @keyframes fadeIn    { from { opacity: 0; } to { opacity: 1; } }
@@ -600,6 +621,7 @@
           <h2 class="result-name" id="rName"></h2>
           <div class="badges" id="rBadges" aria-label="Restaurant details"></div>
           <p class="result-addr" id="rAddr"></p>
+          <div id="rHours" class="hours-bar"></div>
           <blockquote class="ai-reason" id="rReason" aria-label="Why we picked this restaurant"></blockquote>
           <div class="result-actions">
             <a class="btn-maps" id="rMapsLink" href="#" target="_blank" rel="noopener noreferrer">
@@ -655,9 +677,9 @@
     'use strict';
 
     let userLat = null, userLng = null;
-    let selectedPrices = new Set();
+    let selectedPrices = new Set(); // empty = all prices
     let lastPick = null;
-    let vibeDebounceTimer = null; // ✅ NEW: for vibe_entered debounce
+    let rejectedPlaceIds = new Set(); // track rejected restaurants
 
     const locDot     = document.getElementById('locDot');
     const locText    = document.getElementById('locText');
@@ -676,15 +698,11 @@
       }
     }
 
-    // ✅ NEW: Event 1 — App loaded
-    track('app_loaded');
-
     // Track page engagement time on unload
     const _pageStart = Date.now();
     window.addEventListener('beforeunload', () => {
       track('page_engagement', { seconds: Math.round((Date.now() - _pageStart) / 1000) });
     });
-
     const vibePlaceholders = [
       'romantic date night, somewhere cozy and quiet…',
       'quick lunch solo, nothing too fancy…',
@@ -700,21 +718,7 @@
     document.getElementById('vibe').placeholder =
       vibePlaceholders[Math.floor(Math.random() * vibePlaceholders.length)];
 
-    // ✅ NEW: Event 2 — Vibe entered (debounced, fires 1.5s after user stops typing)
-    document.getElementById('vibe').addEventListener('input', function () {
-      clearTimeout(vibeDebounceTimer);
-      if (!this.value.trim()) return;
-      vibeDebounceTimer = setTimeout(() => {
-        track('vibe_entered', { length: this.value.trim().length });
-      }, 1500);
-    });
-
-    // ✅ NEW: Event 3 — Radius changed
-    document.getElementById('radius').addEventListener('change', function () {
-      track('radius_changed', { radius_meters: +this.value });
-    });
-
-    /* ── Price toggles ── */
+    /* ── Price toggles — empty set = all prices ── */
     document.querySelectorAll('.price-btn').forEach(btn => {
       btn.addEventListener('click', () => {
         const p = +btn.dataset.price;
@@ -833,10 +837,11 @@
       const radius = radiusOverride || +document.getElementById('radius').value;
       const body = { lat: userLat, lng: userLng, radius };
 
+      // Only send price filters if user has selected some
       if (selectedPrices.size > 0) {
         const pricesArr = [...selectedPrices].sort();
-        body.minprice = pricesArr[0] ;
-        body.maxprice = pricesArr[pricesArr.length - 1] ;
+        body.minprice = pricesArr[0];
+        body.maxprice = pricesArr[pricesArr.length - 1];
       }
 
       const cuisine = document.getElementById('cuisine').value;
@@ -855,7 +860,9 @@
 
     /* ── AI pick via Cloudflare Function ── */
     async function aiPick(restaurants, vibe) {
-      const pool = restaurants.slice(0, 20);
+      // Filter out previously rejected restaurants unless it's all we have
+      const fresh = restaurants.filter(r => !rejectedPlaceIds.has(r.place_id));
+      const pool = (fresh.length > 0 ? fresh : restaurants).slice(0, 20);
       const list = pool.map((r, i) =>
         `${i + 1}. ${r.name} | ⭐ ${r.rating ?? 'N/A'} (${r.user_ratings_total ?? 0} reviews) | Price: ${'$'.repeat(r.price_level || 2)} | Open: ${r.opening_hours?.open_now ?? 'unknown'} | Tags: ${(r.types || []).slice(0, 4).join(', ')}`
       ).join('\n');
@@ -884,6 +891,7 @@ Reply ONLY with valid JSON, no markdown, no extra text:
         const pick = pool[parsed.index - 1] || pool[0];
         return { pick, reason: parsed.reason };
       } catch (_) {
+        // Fallback: weighted random by rating
         const scored = pool.map(r => ({
           r, w: (r.rating || 3) * (r.user_ratings_total ? Math.log10(r.user_ratings_total + 1) : 1)
         }));
@@ -930,7 +938,23 @@ Reply ONLY with valid JSON, no markdown, no extra text:
       }
       if (restaurant.opening_hours?.open_now !== undefined) {
         const open = restaurant.opening_hours.open_now;
-        badges.innerHTML += `<span class="badge ${open ? 'open' : 'closed-badge'}" aria-label="${open ? 'Open now' : 'May be closed — check hours'}">${open ? '✓ Open Now' : '⚠️ Check Hours'}</span>`;
+        badges.innerHTML += `<span class="badge ${open ? 'open' : 'closed-badge'}" aria-label="${open ? 'Open now' : 'May be closed — check hours'}">${open ? '✓ Open Now' : '⚠️ May Be Closed'}</span>`;
+      } else {
+        badges.innerHTML += `<span class="badge" aria-label="Hours unknown">🕐 Hours Unknown</span>`;
+      }
+
+      // Hours link
+      const hoursEl = document.getElementById('rHours');
+      const mapsHoursUrl = `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(restaurant.name)}&query_place_id=${restaurant.place_id}`;
+      if (restaurant.opening_hours?.open_now === false) {
+        hoursEl.innerHTML = `⚠️ This place may be closed right now. <a href="${mapsHoursUrl}" target="_blank" rel="noopener noreferrer">Check hours on Google Maps →</a>`;
+        hoursEl.className = 'hours-warning on';
+      } else if (restaurant.opening_hours?.open_now === true) {
+        hoursEl.innerHTML = `✓ Open now · <a href="${mapsHoursUrl}" target="_blank" rel="noopener noreferrer">See full hours on Google Maps →</a>`;
+        hoursEl.className = 'hours-ok on';
+      } else {
+        hoursEl.innerHTML = `🕐 Hours not available · <a href="${mapsHoursUrl}" target="_blank" rel="noopener noreferrer">Check Google Maps →</a>`;
+        hoursEl.className = 'hours-unknown on';
       }
 
       document.getElementById('rAddr').innerHTML = `📍 ${restaurant.vicinity || ''}`;
@@ -950,7 +974,6 @@ Reply ONLY with valid JSON, no markdown, no extra text:
       resultCard.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
       document.getElementById('rName').focus();
     }
-
     function showError(msg) { errorMsg.innerHTML = msg; errorMsg.classList.add('on'); errorMsg.focus(); }
     function clearError()   { errorMsg.classList.remove('on'); }
 
@@ -981,6 +1004,7 @@ Reply ONLY with valid JSON, no markdown, no extra text:
         loadingMsg.textContent = 'Searching restaurants near you…';
         let restaurants = await searchNearby(radiusOverride);
 
+        // Auto-widen if no results
         if (!restaurants.length) {
           const widenTo = radius * 2;
           if (widenTo <= 40000) {
@@ -1023,13 +1047,18 @@ Reply ONLY with valid JSON, no markdown, no extra text:
       }
     }
 
-    pickBtn.addEventListener('click', () => doPick());
+    document.getElementById('radius').addEventListener('change', () => rejectedPlaceIds.clear());
+    pickBtn.addEventListener('click', () => { rejectedPlaceIds.clear(); doPick(); });
     document.getElementById('pickAgainBtn').addEventListener('click', () => {
-      track('pick_again', { previous_restaurant: lastPick?.name || 'unknown' });
+      if (lastPick?.place_id) rejectedPlaceIds.add(lastPick.place_id);
+      track('pick_again', { previous_restaurant: lastPick?.name || 'unknown', rejected_count: rejectedPlaceIds.size });
       doPick();
     });
-    document.getElementById('vibe').addEventListener('keydown', e => { if (e.key === 'Enter') doPick(); });
+    document.getElementById('vibe').addEventListener('keydown', e => {
+      if (e.key === 'Enter') { rejectedPlaceIds.clear(); doPick(); }
+    });
     document.getElementById('cuisine').addEventListener('change', e => {
+      rejectedPlaceIds.clear();
       track('cuisine_selected', { cuisine: e.target.value || 'any' });
     });
 
