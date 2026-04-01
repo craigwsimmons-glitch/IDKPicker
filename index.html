@@ -803,8 +803,16 @@
       }
       locBtn.textContent = 'Detecting…';
       locBtn.disabled = true;
+
+      // Safety net — re-enable button after 12s no matter what
+      const safetyTimer = setTimeout(() => {
+        locBtn.textContent = '📍 Find Me';
+        locBtn.disabled = false;
+      }, 12000);
+
       navigator.geolocation.getCurrentPosition(
         pos => {
+          clearTimeout(safetyTimer);
           userLat = pos.coords.latitude;
           userLng = pos.coords.longitude;
           locDot.classList.add('on');
@@ -815,6 +823,7 @@
           track('location_detected', { accuracy: Math.round(pos.coords.accuracy), auto: silent });
         },
         err => {
+          clearTimeout(safetyTimer);
           locBtn.textContent = '📍 Find Me';
           locBtn.disabled = false;
           if (err.code === 1) {
@@ -827,13 +836,13 @@
             track('location_error', { error: 'timeout' });
           }
         },
-        { timeout: 10000 }
+        { timeout: 10000, maximumAge: 60000 }
       );
     }
 
     // Auto-detect on page load
     window.addEventListener('load', () => {
-      setTimeout(() => detectLocation(false), 800);
+      setTimeout(() => detectLocation(true), 800);
     });
 
     locBtn.addEventListener('click', () => detectLocation(false));
