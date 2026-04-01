@@ -840,11 +840,7 @@
       );
     }
 
-    // Auto-detect on page load
-    window.addEventListener('load', () => {
-      setTimeout(() => detectLocation(true), 800);
-    });
-
+    // User taps Find Me to detect location
     locBtn.addEventListener('click', () => detectLocation(false));
 
     /* ── Search via Cloudflare Function ── */
