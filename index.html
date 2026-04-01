@@ -662,12 +662,11 @@
 
   <div id="map" style="display:none" aria-hidden="true"></div>
 
-  <!-- PWA Service Worker -->
+  <!-- PWA: unregister any old service workers to prevent caching issues -->
   <script>
     if ('serviceWorker' in navigator) {
-      window.addEventListener('load', () => {
-        navigator.serviceWorker.register('/sw.js')
-          .catch(err => console.log('SW registration failed:', err));
+      navigator.serviceWorker.getRegistrations().then(regs => {
+        regs.forEach(reg => reg.unregister());
       });
     }
   </script>
