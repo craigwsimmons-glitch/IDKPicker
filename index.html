@@ -894,14 +894,18 @@ Reply ONLY with valid JSON, no markdown, no extra text:
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({ prompt }),
         });
-        if (!resp.ok) throw new Error('AI service unavailable');
+        if (!resp.ok) {
+          const errData = await resp.json().catch(() => ({}));
+          throw new Error(`AI service error ${resp.status}: ${errData?.error || resp.statusText}`);
+        }
         const data = await resp.json();
         if (data.error) throw new Error(data.error);
         const raw = data.content.map(c => c.text || '').join('').replace(/```json|```/g, '').trim();
         const parsed = JSON.parse(raw);
         const pick = pool[parsed.index - 1] || pool[0];
         return { pick, reason: parsed.reason };
-      } catch (_) {
+      } catch (err) {
+        console.error('[IDKPicker] AI pick failed:', err.message);
         // Fallback: weighted random by rating
         const scored = pool.map(r => ({
           r, w: (r.rating || 3) * (r.user_ratings_total ? Math.log10(r.user_ratings_total + 1) : 1)
@@ -909,7 +913,7 @@ Reply ONLY with valid JSON, no markdown, no extra text:
         const total = scored.reduce((a, b) => a + b.w, 0);
         let rand = Math.random() * total;
         const pick = scored.find(s => (rand -= s.w) <= 0)?.r || pool[0];
-        return { pick, reason: 'Picked based on top ratings and popularity near you!' };
+        return { pick, reason: `Picked based on top ratings and popularity near you! (AI unavailable: ${err.message})` };
       }
     }
 
