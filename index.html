@@ -305,7 +305,7 @@
     }
     .loading p { color: var(--text-muted); font-size: 0.925rem; font-weight: 600; }
 
-    /* ── Error ── */
+    /* ── Error / Info messages ── */
     .error-msg {
       display: none;
       background: #FFF0EE; border: 2px solid #FFCDC7;
@@ -314,6 +314,9 @@
       margin-top: 0.875rem;
     }
     .error-msg.on { display: block; }
+    .error-msg.info {
+      background: #EFF6FF; border-color: #BFDBFE; color: #1E40AF;
+    }
 
     /* ── Result card ── */
     .result-card {
@@ -357,6 +360,10 @@
     .badge.hi { border-color: var(--accent2); color: #8B6000; background: var(--accent2-dim); }
     .badge.open { border-color: var(--green); color: #166534; background: rgba(34,197,94,0.1); }
     .badge.closed-badge { border-color: #F59E0B; color: #92400E; background: rgba(245,158,11,0.1); }
+    .badge.price-1 { border-color: #86EFAC; color: #166534; background: rgba(134,239,172,0.15); }
+    .badge.price-2 { border-color: var(--border); color: var(--text-muted); background: var(--bg2); }
+    .badge.price-3 { border-color: #FCD34D; color: #92400E; background: rgba(252,211,77,0.15); }
+    .badge.price-4 { border-color: #F59E0B; color: #78350F; background: rgba(245,158,11,0.15); font-weight: 800; }
 
     .result-addr {
       font-size: 0.875rem; color: var(--text-muted);
@@ -365,15 +372,18 @@
     }
 
     .ai-reason {
-      background: var(--bg2);
+      background: linear-gradient(135deg, #FFF8EE 0%, var(--bg2) 100%);
+      border: 1.5px solid var(--border);
       border-left: 4px solid var(--accent);
       border-radius: 0 var(--radius-sm) var(--radius-sm) 0;
-      padding: 0.875rem 1rem;
-      font-size: 0.9rem; line-height: 1.6;
+      padding: 1rem 1.1rem;
+      font-size: 0.925rem; line-height: 1.65;
       margin-bottom: 1.25rem; color: var(--text-mid);
-      font-weight: 500;
+      font-weight: 600;
+      font-style: italic;
     }
-    .ai-reason::before { content: '🤖 '; }
+    .ai-reason::before { content: '"'; font-size: 2rem; color: var(--accent); line-height: 0; vertical-align: -0.5rem; margin-right: 0.2rem; font-style: normal; font-family: Georgia, serif; }
+    .ai-reason::after  { content: '"'; font-size: 2rem; color: var(--accent); line-height: 0; vertical-align: -0.5rem; margin-left: 0.2rem; font-style: normal; font-family: Georgia, serif; }
 
     .result-actions { display: grid; grid-template-columns: 1fr 1fr; gap: 0.625rem; }
 
@@ -628,7 +638,7 @@
               🗺️ Get Directions
             </a>
             <a class="btn-reserve" id="rReserveLink" href="#" target="_blank" rel="noopener noreferrer">
-              🪑 Reserve a Table
+              🪑 Reserve
             </a>
             <button class="btn-share" id="shareBtn" aria-label="Share this restaurant pick">
               📤 Share
@@ -949,7 +959,7 @@ Reply ONLY with valid JSON, no markdown, no extra text:
         badges.innerHTML += `<span class="badge" aria-label="${restaurant.user_ratings_total} reviews">${restaurant.user_ratings_total.toLocaleString()} reviews</span>`;
       }
       if (restaurant.price_level) {
-        badges.innerHTML += `<span class="badge" aria-label="Price: ${'$'.repeat(restaurant.price_level)}">${'$'.repeat(restaurant.price_level)}</span>`;
+        badges.innerHTML += `<span class="badge price-${restaurant.price_level}" aria-label="Price: ${'$'.repeat(restaurant.price_level)}">${'$'.repeat(restaurant.price_level)}</span>`;
       }
       if (restaurant.opening_hours?.open_now !== undefined) {
         const open = restaurant.opening_hours.open_now;
@@ -989,8 +999,8 @@ Reply ONLY with valid JSON, no markdown, no extra text:
       resultCard.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
       document.getElementById('rName').focus();
     }
-    function showError(msg) { errorMsg.innerHTML = msg; errorMsg.classList.add('on'); errorMsg.focus(); }
-    function clearError()   { errorMsg.classList.remove('on'); }
+    function showError(msg, info = false) { errorMsg.innerHTML = msg; errorMsg.classList.toggle('info', info); errorMsg.classList.add('on'); errorMsg.focus(); }
+    function clearError()   { errorMsg.classList.remove('on', 'info'); }
 
     /* ── Main flow with auto-widen ── */
     async function doPick(radiusOverride) {
@@ -1027,7 +1037,7 @@ Reply ONLY with valid JSON, no markdown, no extra text:
             restaurants = await searchNearby(widenTo);
             if (restaurants.length) {
               const miles = Math.round(widenTo / 1600);
-              showError(`Nothing found nearby — widened search to ${miles} miles and found some options!`);
+              showError(`Nothing found nearby — widened search to ${miles} miles and found some options!`, true);
               track('radius_auto_widened', { from: radius, to: widenTo });
             }
           }
