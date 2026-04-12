@@ -576,8 +576,6 @@
     .hours-warning { background: rgba(245,158,11,0.1); border: 1.5px solid #F59E0B; color: #92400E; }
     .hours-ok      { background: rgba(34,197,94,0.08); border: 1.5px solid var(--green); color: #166534; }
     .hours-unknown { background: var(--bg2); border: 1.5px solid var(--border); color: var(--text-muted); }
-    .hours-bar a   { color: inherit; text-decoration: underline; }
-    .hours-bar a:hover { opacity: 0.8; }
 
     /* ── Footer ── */
     footer {
@@ -1184,17 +1182,16 @@ Reply ONLY with valid JSON, no markdown, no extra text:
         badges.innerHTML += `<span class="badge" aria-label="Hours unknown">🕐 Hours Unknown</span>`;
       }
 
-      // Hours link
+      // Hours status (no link — directions button covers navigation)
       const hoursEl = document.getElementById('rHours');
-      const mapsHoursUrl = `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(restaurant.name)}&query_place_id=${restaurant.place_id}`;
       if (restaurant.opening_hours?.open_now === false) {
-        hoursEl.innerHTML = `⚠️ This place may be closed right now. <a href="${mapsHoursUrl}" target="_blank" rel="noopener noreferrer">Check hours on Google Maps →</a>`;
+        hoursEl.innerHTML = `⚠️ This place may be closed right now — check before you go`;
         hoursEl.className = 'hours-warning on';
       } else if (restaurant.opening_hours?.open_now === true) {
-        hoursEl.innerHTML = `✓ Open now · <a href="${mapsHoursUrl}" target="_blank" rel="noopener noreferrer">See full hours on Google Maps →</a>`;
+        hoursEl.innerHTML = `✓ Open now`;
         hoursEl.className = 'hours-ok on';
       } else {
-        hoursEl.innerHTML = `🕐 Hours not available · <a href="${mapsHoursUrl}" target="_blank" rel="noopener noreferrer">Check Google Maps →</a>`;
+        hoursEl.innerHTML = `🕐 Hours unknown`;
         hoursEl.className = 'hours-unknown on';
       }
 
