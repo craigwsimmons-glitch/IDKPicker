@@ -512,11 +512,64 @@
     @media (prefers-reduced-motion: reduce) {
       *, *::before, *::after { animation-duration: 0.01ms !important; transition-duration: 0.01ms !important; }
     }
+
+    /* ── iOS install banner ── */
+    .ios-install-banner {
+      display: none;
+      position: fixed; bottom: 0; left: 0; right: 0;
+      background: var(--surface);
+      border-top: 2px solid var(--border);
+      box-shadow: 0 -4px 24px rgba(0,0,0,0.1);
+      padding: 1rem 1.25rem 1.5rem;
+      z-index: 500;
+      animation: fadeUp 0.4s ease both;
+    }
+    .ios-install-banner.on { display: block; }
+    .ios-install-banner-inner {
+      display: flex; align-items: flex-start; gap: 0.875rem;
+      max-width: 620px; margin: 0 auto;
+    }
+    .ios-install-icon {
+      font-size: 2rem; flex-shrink: 0; line-height: 1;
+    }
+    .ios-install-text { flex: 1; }
+    .ios-install-text strong {
+      display: block; font-size: 0.925rem;
+      color: var(--text); margin-bottom: 0.25rem;
+    }
+    .ios-install-text p {
+      font-size: 0.8rem; color: var(--text-mid);
+      font-weight: 500; line-height: 1.5; margin: 0;
+    }
+    .ios-install-text p .share-icon {
+      display: inline-block;
+      width: 1.1em; height: 1.1em;
+      vertical-align: -0.15em;
+    }
+    .ios-install-dismiss {
+      background: none; border: none;
+      color: var(--text-muted); font-size: 1.25rem;
+      cursor: pointer; padding: 0; flex-shrink: 0;
+      line-height: 1; margin-top: -0.1rem;
+    }
+    .ios-install-dismiss:hover { color: var(--text); }
   </style>
 </head>
 <body>
 
   <a href="#main" class="skip-link">Skip to main content</a>
+
+  <!-- iOS install banner -->
+  <div class="ios-install-banner" id="iosInstallBanner" role="complementary" aria-label="Install app prompt">
+    <div class="ios-install-banner-inner">
+      <div class="ios-install-icon">🍽️</div>
+      <div class="ios-install-text">
+        <strong>Add IDKPicker to your Home Screen</strong>
+        <p>Tap <svg class="share-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 12v8a2 2 0 002 2h12a2 2 0 002-2v-8"/><polyline points="16 6 12 2 8 6"/><line x1="12" y1="2" x2="12" y2="15"/></svg> <strong>Share</strong> then <strong>Add to Home Screen</strong> for the full app experience.</p>
+      </div>
+      <button class="ios-install-dismiss" id="iosInstallDismiss" aria-label="Dismiss install prompt">✕</button>
+    </div>
+  </div>
 
   <div class="container">
 
@@ -679,6 +732,24 @@
         regs.forEach(reg => reg.unregister());
       });
     }
+  </script>
+
+  <!-- iOS install prompt -->
+  <script>
+    (function () {
+      var isIos = /iphone|ipad|ipod/i.test(navigator.userAgent);
+      var isStandalone = ('standalone' in navigator) && navigator.standalone;
+      var dismissed = localStorage.getItem('iosInstallDismissed');
+      if (isIos && !isStandalone && !dismissed) {
+        setTimeout(function () {
+          document.getElementById('iosInstallBanner').classList.add('on');
+        }, 3000);
+      }
+      document.getElementById('iosInstallDismiss').addEventListener('click', function () {
+        document.getElementById('iosInstallBanner').classList.remove('on');
+        localStorage.setItem('iosInstallDismissed', '1');
+      });
+    })();
   </script>
 
   <script>
