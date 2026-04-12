@@ -807,7 +807,7 @@
               🗺️ Get Directions
             </a>
             <a class="btn-reserve" id="rReserveLink" href="#" target="_blank" rel="noopener noreferrer">
-              🪑 Reserve
+              ⭐ Yelp
             </a>
             <button class="btn-share" id="shareBtn" aria-label="Share this restaurant pick">
               📤 Share
@@ -1212,8 +1212,9 @@ Reply ONLY with valid JSON, no markdown, no extra text:
       mapsLink.onclick = () => track('get_directions', { restaurant: restaurant.name });
 
       const reserveLink = document.getElementById('rReserveLink');
-      reserveLink.href = `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(restaurant.name + ' reservations')}&query_place_id=${restaurant.place_id}`;
-      reserveLink.setAttribute('aria-label', `Reserve a table at ${restaurant.name}`);
+      const yelpLocation = restaurant.vicinity || '';
+      reserveLink.href = `https://www.yelp.com/search?find_desc=${encodeURIComponent(restaurant.name)}&find_loc=${encodeURIComponent(yelpLocation)}`;
+      reserveLink.setAttribute('aria-label', `View ${restaurant.name} on Yelp`);
       reserveLink.onclick = () => track('reserve_table', { restaurant: restaurant.name });
 
       resultCard.classList.add('on');
