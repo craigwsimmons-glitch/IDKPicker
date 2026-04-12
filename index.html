@@ -10,10 +10,106 @@
   <meta property="og:description" content="Every other tool gives you a list. IDKPicker just picks the perfect restaurant for you." />
   <meta property="og:url" content="https://idkpicker.com" />
   <meta property="og:type" content="website" />
-  <meta name="twitter:card" content="summary_large_image" />
+  <meta property="og:image" content="https://idkpicker.com/icon-512.png" />
+  <meta property="og:image:width" content="512" />
+  <meta property="og:image:height" content="512" />
+  <meta name="twitter:card" content="summary" />
   <meta name="twitter:title" content="IDKPicker — We just pick." />
   <meta name="twitter:description" content="Every other tool gives you a list. IDKPicker just picks." />
+  <meta name="twitter:image" content="https://idkpicker.com/icon-512.png" />
   <link rel="canonical" href="https://idkpicker.com" />
+  <!-- JSON-LD structured data -->
+  <script type="application/ld+json">
+  {
+    "@context": "https://schema.org",
+    "@graph": [
+      {
+        "@type": "WebApplication",
+        "@id": "https://idkpicker.com/#app",
+        "name": "IDKPicker",
+        "url": "https://idkpicker.com",
+        "description": "IDKPicker uses AI and your location to pick ONE perfect restaurant — no lists, no scrolling, no overthinking. Tell us your vibe and we decide.",
+        "applicationCategory": "LifestyleApplication",
+        "operatingSystem": "Web",
+        "inLanguage": "en",
+        "isAccessibleForFree": true,
+        "offers": {
+          "@type": "Offer",
+          "price": "0",
+          "priceCurrency": "USD"
+        },
+        "featureList": [
+          "AI-powered restaurant selection using Claude AI",
+          "GPS location-based restaurant search",
+          "Cuisine type filtering",
+          "Budget and price level filtering",
+          "Vibe-based personalization",
+          "Google Places integration",
+          "Works worldwide"
+        ],
+        "screenshot": "https://idkpicker.com/icon-512.png",
+        "creator": {
+          "@type": "Organization",
+          "name": "IDKPicker",
+          "url": "https://idkpicker.com"
+        }
+      },
+      {
+        "@type": "FAQPage",
+        "mainEntity": [
+          {
+            "@type": "Question",
+            "name": "What is IDKPicker?",
+            "acceptedAnswer": {
+              "@type": "Answer",
+              "text": "IDKPicker is a free AI-powered restaurant picker. Instead of giving you a long list of options, it asks for your location and vibe, then picks exactly one restaurant for you using Claude AI and real-time Google Places data."
+            }
+          },
+          {
+            "@type": "Question",
+            "name": "How does IDKPicker work?",
+            "acceptedAnswer": {
+              "@type": "Answer",
+              "text": "IDKPicker uses your GPS location to search nearby restaurants via Google Places, then uses Claude AI to analyze the results and select the single best match based on your mood, cuisine preference, and budget. The whole process takes just a few seconds."
+            }
+          },
+          {
+            "@type": "Question",
+            "name": "Is IDKPicker free to use?",
+            "acceptedAnswer": {
+              "@type": "Answer",
+              "text": "Yes, IDKPicker is completely free. No account, no sign-up, no subscription required. Just open the site and start picking."
+            }
+          },
+          {
+            "@type": "Question",
+            "name": "Where does IDKPicker work?",
+            "acceptedAnswer": {
+              "@type": "Answer",
+              "text": "IDKPicker works anywhere Google Places has restaurant data, which covers most cities and towns worldwide. Simply allow location access and it will find restaurants near you."
+            }
+          },
+          {
+            "@type": "Question",
+            "name": "Can I filter by cuisine type or budget?",
+            "acceptedAnswer": {
+              "@type": "Answer",
+              "text": "Yes. IDKPicker lets you filter by cuisine type (American, Italian, Mexican, Japanese, Thai, Indian, and more) and set a budget level from $ (cheap) to $$$$ (very expensive). You can also describe your vibe in your own words to help the AI personalize the pick."
+            }
+          },
+          {
+            "@type": "Question",
+            "name": "What if I don't like the restaurant it picks?",
+            "acceptedAnswer": {
+              "@type": "Answer",
+              "text": "Just tap 'Pick Again' and IDKPicker will choose a different restaurant, automatically excluding the previous pick so you always get a fresh suggestion."
+            }
+          }
+        ]
+      }
+    ]
+  }
+  </script>
   <!-- Google Analytics 4 -->
   <script async src="https://www.googletagmanager.com/gtag/js?id=G-21KXWHB7LR"></script>
   <script>
@@ -513,6 +609,28 @@
       *, *::before, *::after { animation-duration: 0.01ms !important; transition-duration: 0.01ms !important; }
     }
 
+    /* ── FAQ section ── */
+    .faq-section {
+      margin-top: 2.5rem; padding-top: 2rem;
+      border-top: 2px solid var(--border);
+    }
+    .faq-title {
+      font-family: 'Fredoka', sans-serif;
+      font-size: 1rem; font-weight: 600;
+      color: var(--text-muted);
+      text-transform: uppercase; letter-spacing: 0.08em;
+      margin-bottom: 1rem;
+    }
+    .faq-list { display: flex; flex-direction: column; gap: 0.875rem; }
+    .faq-item dt {
+      font-size: 0.875rem; font-weight: 700;
+      color: var(--text-mid); margin-bottom: 0.2rem;
+    }
+    .faq-item dd {
+      font-size: 0.82rem; color: var(--text-muted);
+      font-weight: 500; line-height: 1.55; margin: 0;
+    }
+
     /* ── iOS install banner ── */
     .ios-install-banner {
       display: none;
@@ -575,7 +693,7 @@
 
     <header role="banner">
       <div class="logo-wrap">
-        <div class="logo" aria-label="IDK Picker">IDK<em>Picker</em></div>
+        <h1 class="logo">IDK<em>Picker</em></h1>
       </div>
       <p class="hero-line"><strong>Every other tool gives you a list.</strong><br>IDKPicker just picks.</p>
       <p class="hero-sub">AI-powered · Location-based · Free</p>
@@ -716,6 +834,33 @@
       </div>
     </div>
 
+    <!-- FAQ section — helps SEO/AIO, visually subtle -->
+    <section class="faq-section" aria-label="Frequently asked questions">
+      <h2 class="faq-title">Common questions</h2>
+      <dl class="faq-list">
+        <div class="faq-item">
+          <dt>What is IDKPicker?</dt>
+          <dd>A free AI-powered restaurant picker. Give it your location and vibe — it picks one perfect place, no endless scrolling required.</dd>
+        </div>
+        <div class="faq-item">
+          <dt>How does it work?</dt>
+          <dd>It uses your GPS to find nearby restaurants via Google Places, then Claude AI picks the best match for your mood, cuisine, and budget.</dd>
+        </div>
+        <div class="faq-item">
+          <dt>Is it free?</dt>
+          <dd>Yes — completely free, no account or sign-up needed.</dd>
+        </div>
+        <div class="faq-item">
+          <dt>Where does it work?</dt>
+          <dd>Anywhere Google Places has data — most cities worldwide.</dd>
+        </div>
+        <div class="faq-item">
+          <dt>What if I don't like the pick?</dt>
+          <dd>Tap <strong>Pick Again</strong> — it automatically excludes the previous pick so you always get a fresh suggestion.</dd>
+        </div>
+      </dl>
+    </section>
+
     <footer role="contentinfo">
       <p>IDKPicker &mdash; Because deciding is exhausting.</p>
       <p style="margin-top:0.3rem">Powered by Google Places &amp; Claude AI &nbsp;·&nbsp; <a href="https://idkpicker.com">idkpicker.com</a></p>
@@ -725,11 +870,11 @@
 
   <div id="map" style="display:none" aria-hidden="true"></div>
 
-  <!-- PWA: unregister any old service workers to prevent caching issues -->
+  <!-- PWA: register service worker for offline support -->
   <script>
     if ('serviceWorker' in navigator) {
-      navigator.serviceWorker.getRegistrations().then(regs => {
-        regs.forEach(reg => reg.unregister());
+      window.addEventListener('load', function () {
+        navigator.serviceWorker.register('/sw.js').catch(function () {});
       });
     }
   </script>
