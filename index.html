@@ -1097,12 +1097,17 @@
     async function aiPick(restaurants, vibe) {
       // Filter out previously rejected restaurants unless it's all we have
       const fresh = restaurants.filter(r => !rejectedPlaceIds.has(r.place_id));
-      const pool = (fresh.length > 0 ? fresh : restaurants).slice(0, 20);
+      const base = fresh.length > 0 ? fresh : restaurants;
+
+      // Prefer open places; unknown hours are fine; exclude confirmed-closed
+      // Fall back to including closed places only if fewer than 3 open ones exist
+      const openOrUnknown = base.filter(r => r.opening_hours?.open_now !== false);
+      const pool = (openOrUnknown.length >= 3 ? openOrUnknown : base).slice(0, 20);
       const list = pool.map((r, i) =>
         `${i + 1}. ${r.name} | ⭐ ${r.rating ?? 'N/A'} (${r.user_ratings_total ?? 0} reviews) | Price: ${'$'.repeat(r.price_level || 2)} | Open: ${r.opening_hours?.open_now ?? 'unknown'} | Tags: ${(r.types || []).slice(0, 4).join(', ')}`
       ).join('\n');
 
-      const prompt = `You are IDKPicker, a fun and enthusiastic restaurant recommendation AI. Based on the user's vibe and the restaurant list, pick ONE restaurant and explain why in 1–2 fun, energetic sentences. Prefer restaurants that are currently open when possible.
+      const prompt = `You are IDKPicker, a fun and enthusiastic restaurant recommendation AI. Based on the user's vibe and the restaurant list, pick ONE restaurant and explain why in 1–2 fun, energetic sentences.
 
 User vibe: "${vibe || 'No specific vibe — just hungry!'}"
 
