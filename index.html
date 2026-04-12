@@ -1149,9 +1149,12 @@ Reply ONLY with valid JSON, no markdown, no extra text:
     /* ── Share result ── */
     document.getElementById('shareBtn').addEventListener('click', () => {
       if (!lastPick) return;
-      const text = `IDKPicker chose: ${lastPick.name} 🍽️\n${lastPick.vicinity || ''}\nFind your next restaurant at https://idkpicker.com`;
+      const reason = document.getElementById('rReason').textContent || '';
+      const price  = lastPick.price_level ? ' · ' + '$'.repeat(lastPick.price_level) : '';
+      const rating = lastPick.rating ? ` · ⭐ ${lastPick.rating}` : '';
+      const text = `I let AI pick my restaurant and it chose ${lastPick.name}${price}${rating} 🍽️\n\n"${reason.substring(0, 120)}${reason.length > 120 ? '…' : ''}"\n\nStop overthinking it 👇\nhttps://idkpicker.com`;
       if (navigator.share) {
-        navigator.share({ title: 'IDKPicker chose for me!', text }).catch(() => {});
+        navigator.share({ title: `AI picked ${lastPick.name} for me!`, text }).catch(() => {});
         track('share', { method: 'native', restaurant: lastPick.name });
       } else {
         navigator.clipboard.writeText(text).then(() => {
