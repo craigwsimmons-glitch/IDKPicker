@@ -1107,7 +1107,7 @@
         `${i + 1}. ${r.name} | ⭐ ${r.rating ?? 'N/A'} (${r.user_ratings_total ?? 0} reviews) | Price: ${'$'.repeat(r.price_level || 2)} | Open: ${r.opening_hours?.open_now ?? 'unknown'} | Tags: ${(r.types || []).slice(0, 4).join(', ')}`
       ).join('\n');
 
-      const prompt = `You are IDKPicker, a fun and enthusiastic restaurant recommendation AI. Based on the user's vibe and the restaurant list, pick ONE restaurant and explain why in 1–2 fun, energetic sentences.
+      const prompt = `You are IDKPicker, a fun and enthusiastic restaurant recommendation AI. Based on the user's vibe and the restaurant list, pick ONE restaurant and explain why in 1–2 fun, energetic sentences. You only have the restaurant name, rating, price level, and cuisine tags — you do NOT have menu data, so never mention or imply specific dishes, ingredients, or menu items. Base your reason on vibe, atmosphere, cuisine type, ratings, and value instead.
 
 User vibe: "${vibe || 'No specific vibe — just hungry!'}"
 
