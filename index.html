@@ -1267,8 +1267,13 @@
         ? `CRITICAL RULE: The user specifically requested ${cuisine} cuisine. You MUST only pick a restaurant that serves ${cuisine} food. Do NOT pick any restaurant outside this cuisine type, even if it has better ratings. If no restaurant clearly matches, pick the closest match.`
         : '';
 
+      const selectedPricesArr = [...selectedPrices].sort();
+      const priceRule = selectedPricesArr.length
+        ? `CRITICAL RULE: The user set a budget filter of ${selectedPricesArr.map(p => '$'.repeat(p)).join(' or ')}. You MUST only pick a restaurant whose price level matches. Do NOT pick a restaurant outside this budget, even if it has better ratings.`
+        : '';
+
       const prompt = `You are IDKPicker, a fun and enthusiastic restaurant recommendation AI. Based on the user's vibe and the restaurant list, pick ONE restaurant and explain why in 1–2 fun, energetic sentences. You only have the restaurant name, rating, price level, and cuisine tags — you do NOT have menu data, so never mention or imply specific dishes, ingredients, or menu items. Base your reason on vibe, atmosphere, cuisine type, ratings, and value instead.
-${cuisineRule ? '\n' + cuisineRule + '\n' : ''}
+${cuisineRule ? '\n' + cuisineRule : ''}${priceRule ? '\n' + priceRule : ''}${cuisineRule || priceRule ? '\n' : ''}
 User vibe: "${vibe || 'No specific vibe — just hungry!'}"
 
 Nearby restaurants:
@@ -1363,7 +1368,9 @@ Reply ONLY with valid JSON, no markdown, no extra text:
         hoursEl.className = 'hours-unknown on';
       }
 
-      document.getElementById('rAddr').innerHTML = `📍 ${restaurant.vicinity || ''}`;
+      const rAddr = document.getElementById('rAddr');
+      rAddr.textContent = '';
+      rAddr.appendChild(document.createTextNode('📍 ' + (restaurant.vicinity || '')));
       document.getElementById('rReason').textContent = reason;
 
       const mapsLink = document.getElementById('rMapsLink');
