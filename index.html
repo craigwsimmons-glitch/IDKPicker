@@ -1397,7 +1397,7 @@ Reply ONLY with valid JSON, no markdown, no extra text:
       reserveLink.onclick = () => track('reserve_table', { restaurant: restaurant.name });
 
       resultCard.classList.add('on');
-      resultCard.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+      window.scrollTo({ top: resultCard.offsetTop - 16, behavior: 'smooth' });
       document.getElementById('rName').focus();
 
       // Fire confetti on result reveal
