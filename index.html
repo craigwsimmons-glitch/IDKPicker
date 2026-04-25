@@ -1394,6 +1394,32 @@ Reply ONLY with valid JSON, no markdown, no extra text:
     function showError(msg, info = false) { errorMsg.innerHTML = msg; errorMsg.classList.toggle('info', info); errorMsg.classList.add('on'); errorMsg.focus(); }
     function clearError()   { errorMsg.classList.remove('on', 'info'); }
 
+    /* ── Cuisine type map: dropdown value → Google Places types ── */
+    const cuisineTypeMap = {
+      american:      ['american_restaurant'],
+      italian:       ['italian_restaurant'],
+      mexican:       ['mexican_restaurant'],
+      chinese:       ['chinese_restaurant'],
+      japanese:      ['japanese_restaurant', 'ramen_restaurant'],
+      thai:          ['thai_restaurant'],
+      indian:        ['indian_restaurant'],
+      mediterranean: ['mediterranean_restaurant', 'greek_restaurant', 'middle_eastern_restaurant'],
+      pizza:         ['pizza_restaurant', 'italian_restaurant'],
+      burgers:       ['hamburger_restaurant', 'american_restaurant'],
+      sushi:         ['sushi_restaurant', 'japanese_restaurant'],
+      bbq:           ['barbecue_restaurant'],
+      seafood:       ['seafood_restaurant'],
+      vegetarian:    ['vegetarian_restaurant'],
+      vegan:         ['vegan_restaurant', 'vegetarian_restaurant'],
+    };
+
+    function filterByCuisine(restaurants, cuisine) {
+      const types = cuisineTypeMap[cuisine];
+      if (!types) return restaurants;
+      const matched = restaurants.filter(r => (r.types || []).some(t => types.includes(t)));
+      return matched.length > 0 ? matched : null; // null = no matches found
+    }
+
     /* ── Main flow with auto-widen ── */
     async function doPick(radiusOverride) {
       clearError();
@@ -1440,8 +1466,19 @@ Reply ONLY with valid JSON, no markdown, no extra text:
           throw new Error('No restaurants found in your area. Try a different cuisine or a wider radius!');
         }
 
+        // Hard-filter by cuisine type before the AI sees the list
+        const selectedCuisine = document.getElementById('cuisine').value;
+        if (selectedCuisine) {
+          const filtered = filterByCuisine(restaurants, selectedCuisine);
+          if (!filtered) {
+            const label = document.getElementById('cuisine').options[document.getElementById('cuisine').selectedIndex].text.replace(/\s[\S]+$/, '').trim();
+            throw new Error(`No ${label} restaurants found nearby. Try widening your search radius or choosing a different cuisine!`);
+          }
+          restaurants = filtered;
+        }
+
         loadingMsg.textContent = 'AI is picking your perfect match…';
-        const { pick, reason } = await aiPick(restaurants, vibe, document.getElementById('cuisine').value);
+        const { pick, reason } = await aiPick(restaurants, vibe, selectedCuisine);
 
         loading.classList.remove('on');
         stopLoadingEmoji();
