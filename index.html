@@ -1250,7 +1250,7 @@
     }
 
     /* ── AI pick via Cloudflare Function ── */
-    async function aiPick(restaurants, vibe) {
+    async function aiPick(restaurants, vibe, cuisine) {
       // Filter out previously rejected restaurants unless it's all we have
       const fresh = restaurants.filter(r => !rejectedPlaceIds.has(r.place_id));
       const base = fresh.length > 0 ? fresh : restaurants;
@@ -1263,8 +1263,12 @@
         `${i + 1}. ${r.name} | ⭐ ${r.rating ?? 'N/A'} (${r.user_ratings_total ?? 0} reviews) | Price: ${'$'.repeat(r.price_level || 2)} | Open: ${r.opening_hours?.open_now ?? 'unknown'} | Tags: ${(r.types || []).slice(0, 4).join(', ')}`
       ).join('\n');
 
-      const prompt = `You are IDKPicker, a fun and enthusiastic restaurant recommendation AI. Based on the user's vibe and the restaurant list, pick ONE restaurant and explain why in 1–2 fun, energetic sentences. You only have the restaurant name, rating, price level, and cuisine tags — you do NOT have menu data, so never mention or imply specific dishes, ingredients, or menu items. Base your reason on vibe, atmosphere, cuisine type, ratings, and value instead.
+      const cuisineRule = cuisine
+        ? `CRITICAL RULE: The user specifically requested ${cuisine} cuisine. You MUST only pick a restaurant that serves ${cuisine} food. Do NOT pick any restaurant outside this cuisine type, even if it has better ratings. If no restaurant clearly matches, pick the closest match.`
+        : '';
 
+      const prompt = `You are IDKPicker, a fun and enthusiastic restaurant recommendation AI. Based on the user's vibe and the restaurant list, pick ONE restaurant and explain why in 1–2 fun, energetic sentences. You only have the restaurant name, rating, price level, and cuisine tags — you do NOT have menu data, so never mention or imply specific dishes, ingredients, or menu items. Base your reason on vibe, atmosphere, cuisine type, ratings, and value instead.
+${cuisineRule ? '\n' + cuisineRule + '\n' : ''}
 User vibe: "${vibe || 'No specific vibe — just hungry!'}"
 
 Nearby restaurants:
@@ -1430,7 +1434,7 @@ Reply ONLY with valid JSON, no markdown, no extra text:
         }
 
         loadingMsg.textContent = 'AI is picking your perfect match…';
-        const { pick, reason } = await aiPick(restaurants, vibe);
+        const { pick, reason } = await aiPick(restaurants, vibe, document.getElementById('cuisine').value);
 
         loading.classList.remove('on');
         stopLoadingEmoji();
