@@ -389,12 +389,16 @@
     }
     .price-btn:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
 
-    /* ── Pick button ── */
+    /* ── Pick button — sticky on mobile ── */
     .pick-cta-wrap {
-      margin-top: 0.5rem;
-      padding-top: 1rem;
+      position: fixed; bottom: 0; left: 0; right: 0;
+      z-index: 100;
+      padding: 0.75rem 1.25rem 1.25rem;
+      background: linear-gradient(to top, var(--bg) 70%, transparent);
       animation: fadeUp 0.5s ease 0.25s both;
     }
+    /* Spacer so content doesn't hide under the sticky button */
+    .pick-cta-spacer { height: 5rem; }
 
     .btn-pick {
       width: 100%;
@@ -851,12 +855,8 @@
         </div>
       </div>
 
-      <!-- CTA — more breathing room -->
-      <div class="pick-cta-wrap">
-        <button class="btn-pick" id="pickBtn" aria-live="polite" aria-busy="false">
-          🎲 Pick My Restaurant
-        </button>
-      </div>
+      <!-- Spacer so content doesn't sit under sticky button -->
+      <div class="pick-cta-spacer"></div>
 
       <!-- Loading — cycling emoji -->
       <div class="loading" id="loading" role="status" aria-live="polite" aria-label="Searching for restaurants">
@@ -942,6 +942,13 @@
       <p>IDKPicker &mdash; Because deciding is exhausting.</p>
       <p style="margin-top:0.3rem">Powered by Google Places &amp; Claude AI &nbsp;·&nbsp; <a href="https://idkpicker.com">idkpicker.com</a></p>
     </footer>
+
+  <!-- Sticky Pick button -->
+  <div class="pick-cta-wrap">
+    <button class="btn-pick" id="pickBtn" aria-live="polite" aria-busy="false">
+      🎲 Pick My Restaurant
+    </button>
+  </div>
 
   </div>
 
