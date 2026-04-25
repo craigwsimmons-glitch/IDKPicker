@@ -315,6 +315,50 @@
     .btn-loc:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
     .btn-loc:disabled { opacity: 0.5; cursor: not-allowed; }
 
+    /* ── City search ── */
+    .city-search-wrap {
+      position: relative;
+      margin-bottom: 0.875rem;
+      animation: fadeUp 0.5s ease 0.2s both;
+    }
+    .city-search-input {
+      background: var(--surface);
+      border: 2px solid var(--border);
+      color: var(--text);
+      border-radius: var(--radius);
+      padding: 0.875rem 1.25rem;
+      font-family: 'Nunito', sans-serif;
+      font-size: 0.925rem; font-weight: 600;
+      width: 100%;
+      box-shadow: var(--shadow);
+      transition: border-color 0.15s, box-shadow 0.15s;
+      -webkit-appearance: none; appearance: none;
+    }
+    .city-search-input:focus { outline: none; border-color: var(--accent); box-shadow: 0 0 0 3px var(--accent-dim); }
+    .city-search-input::placeholder { color: var(--text-muted); font-weight: 500; }
+
+    .city-dropdown {
+      display: none;
+      position: absolute; top: calc(100% + 4px); left: 0; right: 0;
+      background: var(--surface);
+      border: 2px solid var(--border);
+      border-radius: var(--radius-sm);
+      box-shadow: var(--shadow-lg);
+      z-index: 200;
+      overflow: hidden;
+    }
+    .city-dropdown.on { display: block; }
+    .city-option {
+      padding: 0.75rem 1.25rem;
+      font-size: 0.9rem; font-weight: 600;
+      color: var(--text-mid);
+      cursor: pointer;
+      border-bottom: 1px solid var(--border);
+      transition: background 0.1s;
+    }
+    .city-option:last-child { border-bottom: none; }
+    .city-option:hover, .city-option.focused { background: var(--accent-dim); color: var(--accent); }
+
     /* ── Preferences card ── */
     .card {
       background: var(--surface);
@@ -793,6 +837,15 @@
         </button>
       </div>
 
+      <!-- City search -->
+      <div class="city-search-wrap" role="search" aria-label="Search by city">
+        <input type="text" class="city-search-input" id="citySearch"
+          placeholder="Or search by city, e.g. Birmingham, AL..."
+          autocomplete="off" aria-label="Search by city or town" aria-autocomplete="list"
+          aria-controls="cityDropdown" aria-expanded="false" />
+        <div class="city-dropdown" id="cityDropdown" role="listbox" aria-label="City suggestions"></div>
+      </div>
+
       <!-- Preferences -->
       <div class="card" role="region" aria-label="Restaurant preferences">
         <div class="card-title">Your Preferences</div>
@@ -1229,6 +1282,103 @@
 
     // User taps Find Me to detect location
     locBtn.addEventListener('click', () => detectLocation(false));
+
+    /* ── City search autocomplete ── */
+    const citySearch   = document.getElementById('citySearch');
+    const cityDropdown = document.getElementById('cityDropdown');
+    let cityDebounce   = null;
+    let cityFocusIdx   = -1;
+
+    function setLocation(lat, lng, name) {
+      userLat = lat; userLng = lng;
+      locDot.classList.add('on');
+      locText.textContent = name;
+      locBtn.textContent = '📍 Update';
+      locBtn.setAttribute('aria-label', 'Update my current location');
+      track('location_city_selected', { city: name });
+    }
+
+    function closeCityDropdown() {
+      cityDropdown.classList.remove('on');
+      cityDropdown.innerHTML = '';
+      cityFocusIdx = -1;
+      citySearch.setAttribute('aria-expanded', 'false');
+    }
+
+    function renderCityOptions(predictions) {
+      cityDropdown.innerHTML = '';
+      cityFocusIdx = -1;
+      if (!predictions.length) { closeCityDropdown(); return; }
+      predictions.forEach((p, i) => {
+        const opt = document.createElement('div');
+        opt.className = 'city-option';
+        opt.setAttribute('role', 'option');
+        opt.setAttribute('id', `city-opt-${i}`);
+        opt.textContent = p.description;
+        opt.addEventListener('mousedown', e => {
+          e.preventDefault(); // keep focus on input
+          selectCity(p);
+        });
+        cityDropdown.appendChild(opt);
+      });
+      cityDropdown.classList.add('on');
+      citySearch.setAttribute('aria-expanded', 'true');
+    }
+
+    async function selectCity(prediction) {
+      citySearch.value = prediction.description;
+      closeCityDropdown();
+      try {
+        const resp = await fetch(`/api/geocode?place_id=${encodeURIComponent(prediction.place_id)}`);
+        const data = await resp.json();
+        if (data.error) throw new Error(data.error);
+        setLocation(data.lat, data.lng, data.name);
+      } catch {
+        showError('Could not find that location. Please try again.');
+      }
+    }
+
+    citySearch.addEventListener('input', () => {
+      clearTimeout(cityDebounce);
+      const val = citySearch.value.trim();
+      if (val.length < 2) { closeCityDropdown(); return; }
+      cityDebounce = setTimeout(async () => {
+        try {
+          const resp = await fetch(`/api/autocomplete?input=${encodeURIComponent(val)}`);
+          const data = await resp.json();
+          renderCityOptions(data.predictions || []);
+        } catch { closeCityDropdown(); }
+      }, 280);
+    });
+
+    citySearch.addEventListener('keydown', e => {
+      const opts = cityDropdown.querySelectorAll('.city-option');
+      if (!opts.length) return;
+      if (e.key === 'ArrowDown') {
+        e.preventDefault();
+        opts[cityFocusIdx]?.classList.remove('focused');
+        cityFocusIdx = (cityFocusIdx + 1) % opts.length;
+        opts[cityFocusIdx].classList.add('focused');
+        citySearch.setAttribute('aria-activedescendant', `city-opt-${cityFocusIdx}`);
+      } else if (e.key === 'ArrowUp') {
+        e.preventDefault();
+        opts[cityFocusIdx]?.classList.remove('focused');
+        cityFocusIdx = (cityFocusIdx - 1 + opts.length) % opts.length;
+        opts[cityFocusIdx].classList.add('focused');
+        citySearch.setAttribute('aria-activedescendant', `city-opt-${cityFocusIdx}`);
+      } else if (e.key === 'Enter' && cityFocusIdx >= 0) {
+        e.preventDefault();
+        opts[cityFocusIdx].dispatchEvent(new Event('mousedown'));
+      } else if (e.key === 'Escape') {
+        closeCityDropdown();
+      }
+    });
+
+    document.addEventListener('click', e => {
+      if (!citySearch.contains(e.target) && !cityDropdown.contains(e.target)) {
+        closeCityDropdown();
+      }
+    });
 
     /* ── Search via Cloudflare Function ── */
     async function searchNearby(radiusOverride) {
