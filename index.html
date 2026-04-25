@@ -1354,6 +1354,11 @@ Reply ONLY with valid JSON, no markdown, no extra text:
       } else {
         badges.innerHTML += `<span class="badge" aria-label="Hours unknown">🕐 Hours Unknown</span>`;
       }
+      if (userLat && userLng && restaurant.geometry?.location) {
+        const dist = calcDistanceMiles(userLat, userLng, restaurant.geometry.location.lat, restaurant.geometry.location.lng);
+        const distLabel = dist < 0.1 ? 'less than 0.1 mi away' : `${dist.toFixed(1)} mi away`;
+        badges.innerHTML += `<span class="badge" aria-label="${distLabel}">📍 ${distLabel}</span>`;
+      }
 
       // Hours status
       const hoursEl = document.getElementById('rHours');
@@ -1393,6 +1398,17 @@ Reply ONLY with valid JSON, no markdown, no extra text:
     }
     function showError(msg, info = false) { errorMsg.innerHTML = msg; errorMsg.classList.toggle('info', info); errorMsg.classList.add('on'); errorMsg.focus(); }
     function clearError()   { errorMsg.classList.remove('on', 'info'); }
+
+    /* ── Distance calculation (Haversine) ── */
+    function calcDistanceMiles(lat1, lng1, lat2, lng2) {
+      const R = 3958.8; // Earth radius in miles
+      const dLat = (lat2 - lat1) * Math.PI / 180;
+      const dLng = (lng2 - lng1) * Math.PI / 180;
+      const a = Math.sin(dLat / 2) ** 2 +
+                Math.cos(lat1 * Math.PI / 180) * Math.cos(lat2 * Math.PI / 180) *
+                Math.sin(dLng / 2) ** 2;
+      return R * 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
+    }
 
     /* ── Cuisine type map: dropdown value → Google Places types ── */
     const cuisineTypeMap = {
