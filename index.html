@@ -254,27 +254,6 @@
     }
 
     /* ── Food emoji strip ── */
-    .emoji-strip {
-      display: flex; justify-content: center; gap: 0.6rem;
-      font-size: 1.4rem; margin-bottom: 1.75rem;
-      animation: fadeUp 0.5s ease 0.1s both;
-      flex-wrap: wrap;
-    }
-    .emoji-strip span {
-      display: inline-block;
-      animation: wobble 3s ease-in-out infinite;
-      transition: transform 0.2s, filter 0.2s;
-      cursor: default;
-    }
-    .emoji-strip span:hover {
-      transform: scale(1.3) rotate(0deg) !important;
-      filter: drop-shadow(0 2px 8px rgba(255,92,53,0.3));
-    }
-    .emoji-strip span:nth-child(2) { animation-delay: 0.3s; }
-    .emoji-strip span:nth-child(3) { animation-delay: 0.6s; }
-    .emoji-strip span:nth-child(4) { animation-delay: 0.9s; }
-    .emoji-strip span:nth-child(5) { animation-delay: 1.2s; }
-    .emoji-strip span:nth-child(6) { animation-delay: 1.5s; }
 
     /* ── Location bar ── */
     .location-bar {
@@ -821,10 +800,6 @@
       <p class="hero-sub">AI-powered · Location-based · Free</p>
     </header>
 
-    <div class="emoji-strip" aria-hidden="true">
-      <span>🍕</span><span>🍣</span><span>🌮</span><span>🍔</span><span>🍜</span><span>🥩</span>
-    </div>
-
     <main id="main" role="main">
 
       <!-- Location -->
@@ -1338,6 +1313,14 @@
         showError('Could not find that location. Please try again.');
       }
     }
+
+    citySearch.addEventListener('focus', () => {
+      // Wait for keyboard to resize viewport, then scroll input to top so dropdown is visible
+      setTimeout(() => {
+        const wrap = document.getElementById('citySearch').closest('.city-search-wrap');
+        window.scrollTo({ top: wrap.offsetTop - 12, behavior: 'smooth' });
+      }, 320);
+    });
 
     citySearch.addEventListener('input', () => {
       clearTimeout(cityDebounce);
