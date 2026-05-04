@@ -995,17 +995,21 @@
   <!-- iOS install prompt -->
   <script>
     (function () {
-      var isIos = /iphone|ipad|ipod/i.test(navigator.userAgent);
+      // Covers iPhone/iPod AND iPads on iOS 13+ which send a desktop UA
+      var isIos = /iphone|ipad|ipod/i.test(navigator.userAgent) ||
+                  (navigator.platform === 'MacIntel' && navigator.maxTouchPoints > 1);
       var isStandalone = ('standalone' in navigator) && navigator.standalone;
-      var dismissed = localStorage.getItem('iosInstallDismissed');
+      // Re-prompt after 7 days even if previously dismissed
+      var dismissedAt = localStorage.getItem('iosInstallDismissedAt');
+      var dismissed = dismissedAt && (Date.now() - parseInt(dismissedAt, 10)) < 7 * 24 * 60 * 60 * 1000;
       if (isIos && !isStandalone && !dismissed) {
         setTimeout(function () {
           document.getElementById('iosInstallBanner').classList.add('on');
-        }, 3000);
+        }, 1500);
       }
       document.getElementById('iosInstallDismiss').addEventListener('click', function () {
         document.getElementById('iosInstallBanner').classList.remove('on');
-        localStorage.setItem('iosInstallDismissed', '1');
+        localStorage.setItem('iosInstallDismissedAt', Date.now().toString());
       });
     })();
   </script>
