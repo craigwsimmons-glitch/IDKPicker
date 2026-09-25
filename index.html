@@ -668,6 +668,42 @@
     .hours-ok      { background: rgba(34,197,94,0.08); border: 1.5px solid var(--green); color: #166534; }
     .hours-unknown { background: var(--bg2); border: 1.5px solid var(--border); color: var(--text-muted); }
 
+    /* ── Units toggle ── */
+    .label-row { display: flex; align-items: center; justify-content: space-between; gap: 0.5rem; }
+    .unit-toggle { display: inline-flex; background: var(--bg2); border-radius: 999px; padding: 2px; }
+    .unit-toggle button {
+      border: none; background: transparent; cursor: pointer;
+      font-family: 'Nunito', sans-serif; font-size: 0.7rem; font-weight: 800;
+      color: var(--text-muted); padding: 0.15rem 0.6rem; border-radius: 999px;
+      text-transform: lowercase; transition: all 0.15s;
+    }
+    .unit-toggle button[aria-pressed="true"] { background: var(--accent); color: #fff; }
+    .unit-toggle button:focus-visible { outline: 2px solid var(--accent); outline-offset: 1px; }
+
+    /* ── Feedback modal ── */
+    .btn-feedback {
+      background: transparent; border: 2px solid var(--border-dark); color: var(--text-mid);
+      border-radius: 999px; padding: 0.45rem 1rem; margin-bottom: 0.9rem;
+      font-family: 'Nunito', sans-serif; font-size: 0.8rem; font-weight: 700; cursor: pointer;
+      transition: all 0.15s;
+    }
+    .btn-feedback:hover { border-color: var(--accent); color: var(--accent); }
+    .btn-feedback:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
+    #fbModal .modal-box { max-height: calc(100dvh - 2rem); overflow-y: auto; padding: 1.5rem 1.25rem; }
+    .fb-form { text-align: left; display: flex; flex-direction: column; gap: 0.75rem; }
+    .fb-form textarea.field { min-height: 110px; resize: vertical; font-family: inherit; }
+    .fb-types { display: flex; gap: 0.4rem; flex-wrap: wrap; }
+    .fb-types button {
+      flex: 1; min-width: 90px; border: 2px solid var(--border); background: var(--bg);
+      border-radius: var(--radius-sm); padding: 0.5rem; cursor: pointer;
+      font-family: 'Nunito', sans-serif; font-size: 0.8rem; font-weight: 700; color: var(--text-mid);
+    }
+    .fb-types button[aria-pressed="true"] { border-color: var(--accent); background: var(--accent-dim); color: var(--accent); }
+    .fb-hp { position: absolute; left: -9999px; width: 1px; height: 1px; overflow: hidden; }
+    .fb-status { font-size: 0.82rem; font-weight: 600; min-height: 1.2em; }
+    .fb-status.err { color: #B42318; }
+    .fb-cancel { background: transparent; border: none; color: var(--text-muted); font-weight: 700; font-family: 'Nunito', sans-serif; cursor: pointer; padding: 0.5rem; width: 100%; }
+
     /* ── Footer ── */
     footer {
       text-align: center; padding-top: 3rem;
@@ -828,7 +864,13 @@
         <div class="form-grid">
 
           <div class="form-group">
-            <label for="radius">How far?</label>
+            <div class="label-row">
+              <label for="radius">How far?</label>
+              <div class="unit-toggle" role="group" aria-label="Distance units">
+                <button type="button" data-unit="mi" aria-pressed="true">mi</button>
+                <button type="button" data-unit="km" aria-pressed="false">km</button>
+              </div>
+            </div>
             <select id="radius" class="field" aria-label="Select search radius">
               <option value="800">0.5 miles</option>
               <option value="1600" selected>1 mile</option>
@@ -967,7 +1009,40 @@
       </dl>
     </section>
 
+    <!-- Request an update modal -->
+    <div id="fbModal" class="modal-overlay" role="dialog" aria-modal="true" aria-labelledby="fbModalTitle" style="display:none">
+      <div class="modal-box">
+        <div class="modal-icon">💡</div>
+        <h2 class="modal-title" id="fbModalTitle">Request an update</h2>
+        <p class="modal-body">Got an idea, found a bug, or want something changed? Let us know.</p>
+        <form class="fb-form" id="fbForm" novalidate>
+          <div class="fb-types" role="group" aria-label="Request type">
+            <button type="button" data-type="feature" aria-pressed="true">✨ Feature</button>
+            <button type="button" data-type="bug" aria-pressed="false">🐞 Bug</button>
+            <button type="button" data-type="other" aria-pressed="false">💬 Other</button>
+          </div>
+          <div class="form-group">
+            <label for="fbMessage">What should we change?</label>
+            <textarea id="fbMessage" class="field" maxlength="2000" required
+              placeholder="e.g. Show distances in kilometers…"></textarea>
+          </div>
+          <div class="form-group">
+            <label for="fbEmail">Email <span class="optional">(optional — only if you want a reply)</span></label>
+            <input type="email" id="fbEmail" class="field" maxlength="200" autocomplete="email" placeholder="you@example.com" />
+          </div>
+          <div class="fb-hp" aria-hidden="true">
+            <label for="fbWebsite">Website</label>
+            <input type="text" id="fbWebsite" tabindex="-1" autocomplete="off" />
+          </div>
+          <div class="fb-status" id="fbStatus" role="status" aria-live="polite"></div>
+          <button type="submit" class="modal-close" id="fbSubmit">Send request</button>
+          <button type="button" class="fb-cancel" id="fbCancel">Cancel</button>
+        </form>
+      </div>
+    </div>
+
     <footer role="contentinfo">
+      <button type="button" class="btn-feedback" id="fbOpen">💡 Request an update</button>
       <p>IDKPicker &mdash; Because deciding is exhausting.</p>
       <p style="margin-top:0.3rem">Powered by Google Places &amp; Claude AI &nbsp;·&nbsp; <a href="https://idkpicker.com">idkpicker.com</a></p>
     </footer>
@@ -1500,8 +1575,8 @@ Reply ONLY with valid JSON, no markdown, no extra text:
         badges.innerHTML += `<span class="badge" aria-label="Hours unknown">🕐 Hours Unknown</span>`;
       }
       if (userLat && userLng && restaurant.geometry?.location) {
-        const dist = calcDistanceMiles(userLat, userLng, restaurant.geometry.location.lat, restaurant.geometry.location.lng);
-        const distLabel = dist < 0.1 ? 'less than 0.1 mi away' : `${dist.toFixed(1)} mi away`;
+        const distMi = calcDistanceMiles(userLat, userLng, restaurant.geometry.location.lat, restaurant.geometry.location.lng);
+        const distLabel = formatDistance(distMi);
         badges.innerHTML += `<span class="badge" aria-label="${distLabel}">📍 ${distLabel}</span>`;
       }
 
@@ -1555,6 +1630,113 @@ Reply ONLY with valid JSON, no markdown, no extra text:
       return R * 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
     }
 
+    /* ── Distance units (mi / km) ── */
+    const RADIUS_OPTIONS = {
+      mi: [[800,'0.5 miles'],[1600,'1 mile'],[3200,'2 miles'],[8000,'5 miles'],[16000,'10 miles'],[24000,'15 miles'],[32000,'20 miles'],[40000,'25 miles']],
+      km: [[1000,'1 km'],[2000,'2 km'],[3000,'3 km'],[5000,'5 km'],[10000,'10 km'],[15000,'15 km'],[25000,'25 km'],[40000,'40 km']],
+    };
+    function defaultUnit() {
+      // US, UK, Liberia and Myanmar use miles for road distances; everyone else km
+      const langs = navigator.languages?.length ? navigator.languages : [navigator.language || 'en-US'];
+      const region = (langs[0].split('-')[1] || '').toUpperCase();
+      if (!region) return 'mi';
+      return ['US','GB','LR','MM','PR','GU','VI','AS','MP'].includes(region) ? 'mi' : 'km';
+    }
+    let distanceUnit = 'mi';
+    try { distanceUnit = localStorage.getItem('distanceUnit') || defaultUnit(); } catch { distanceUnit = defaultUnit(); }
+    if (!RADIUS_OPTIONS[distanceUnit]) distanceUnit = 'mi';
+
+    function formatDistance(miles) {
+      if (distanceUnit === 'km') {
+        const km = miles * 1.609344;
+        return km < 0.1 ? 'less than 0.1 km away' : `${km.toFixed(1)} km away`;
+      }
+      return miles < 0.1 ? 'less than 0.1 mi away' : `${miles.toFixed(1)} mi away`;
+    }
+    function formatRadius(meters) {
+      if (distanceUnit === 'km') return `${Math.round(meters / 1000)} km`;
+      const mi = Math.round(meters / 1609.344);
+      return `${mi} mile${mi === 1 ? '' : 's'}`;
+    }
+    function applyUnit(unit, { fromUser = false } = {}) {
+      const select = document.getElementById('radius');
+      const current = +select.value || 1600;
+      const opts = RADIUS_OPTIONS[unit];
+      // keep the closest equivalent radius when switching
+      let best = opts[0][0];
+      for (const [m] of opts) if (Math.abs(m - current) < Math.abs(best - current)) best = m;
+      select.innerHTML = opts.map(([m, label]) =>
+        `<option value="${m}"${m === best ? ' selected' : ''}>${label}</option>`).join('');
+      distanceUnit = unit;
+      document.querySelectorAll('.unit-toggle button').forEach(b =>
+        b.setAttribute('aria-pressed', String(b.dataset.unit === unit)));
+      if (fromUser) {
+        try { localStorage.setItem('distanceUnit', unit); } catch {}
+        track('units_changed', { units: unit });
+        // refresh the distance badge on a result that's already showing
+        if (lastPick) {
+          const badge = [...document.querySelectorAll('#resultCard .badge')].find(b => /away$/.test(b.textContent));
+          if (badge && userLat && lastPick.geometry?.location) {
+            const label = formatDistance(calcDistanceMiles(userLat, userLng, lastPick.geometry.location.lat, lastPick.geometry.location.lng));
+            badge.textContent = '📍 ' + label; badge.setAttribute('aria-label', label);
+          }
+        }
+      }
+    }
+    document.querySelectorAll('.unit-toggle button').forEach(b =>
+      b.addEventListener('click', () => { applyUnit(b.dataset.unit, { fromUser: true }); rejectedPlaceIds.clear(); }));
+    if (distanceUnit !== 'mi') applyUnit(distanceUnit);
+
+    /* ── Request an update (feedback) ── */
+    (function initFeedback() {
+      const modal = document.getElementById('fbModal');
+      const form = document.getElementById('fbForm');
+      const status = document.getElementById('fbStatus');
+      const submit = document.getElementById('fbSubmit');
+      const msgEl = document.getElementById('fbMessage');
+      let fbType = 'feature';
+      let opener = null;
+      const open = () => {
+        opener = document.activeElement;
+        status.textContent = ''; status.className = 'fb-status';
+        form.hidden = false; submit.disabled = false;
+        modal.style.display = 'flex'; msgEl.focus();
+        track('feedback_opened');
+      };
+      const close = () => { modal.style.display = 'none'; opener?.focus?.(); };
+      document.getElementById('fbOpen').addEventListener('click', open);
+      document.getElementById('fbCancel').addEventListener('click', close);
+      modal.addEventListener('click', e => { if (e.target === modal) close(); });
+      document.addEventListener('keydown', e => { if (e.key === 'Escape' && modal.style.display === 'flex') close(); });
+      modal.querySelectorAll('.fb-types button').forEach(b => b.addEventListener('click', () => {
+        fbType = b.dataset.type;
+        modal.querySelectorAll('.fb-types button').forEach(x => x.setAttribute('aria-pressed', String(x === b)));
+      }));
+      form.addEventListener('submit', async e => {
+        e.preventDefault();
+        const message = msgEl.value.trim();
+        const email = document.getElementById('fbEmail').value.trim();
+        if (message.length < 3) { status.textContent = 'Please tell us a bit more.'; status.className = 'fb-status err'; msgEl.focus(); return; }
+        if (email && !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) { status.textContent = 'That email doesn\'t look right.'; status.className = 'fb-status err'; return; }
+        submit.disabled = true; status.className = 'fb-status'; status.textContent = 'Sending…';
+        try {
+          const res = await fetch('/api/feedback', {
+            method: 'POST', headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ type: fbType, message, email, website: document.getElementById('fbWebsite').value, page: location.pathname, units: distanceUnit }),
+          });
+          const data = await res.json().catch(() => ({}));
+          if (!res.ok) throw new Error(data.error || 'Something went wrong');
+          status.textContent = 'Thanks! Your request was sent. 🙌';
+          msgEl.value = ''; document.getElementById('fbEmail').value = '';
+          track('feedback_submitted', { type: fbType });
+          setTimeout(close, 1800);
+        } catch (err) {
+          status.textContent = err.message + ' — please try again.'; status.className = 'fb-status err';
+          submit.disabled = false;
+        }
+      });
+    })();
+
     /* ── Cuisine type map: dropdown value → Google Places types ── */
     const cuisineTypeMap = {
       american:      ['american_restaurant'],
@@ -1600,7 +1782,7 @@ Reply ONLY with valid JSON, no markdown, no extra text:
       const vibe    = document.getElementById('vibe').value.trim();
       const prices  = selectedPrices.size ? [...selectedPrices].sort().join(',') : 'any';
 
-      track('pick_started', { cuisine, radius_meters: radius, price_filter: prices, has_vibe: !!vibe });
+      track('pick_started', { cuisine, radius_meters: radius, units: distanceUnit, price_filter: prices, has_vibe: !!vibe });
 
       loading.classList.add('on');
       startLoadingEmoji();
@@ -1618,8 +1800,7 @@ Reply ONLY with valid JSON, no markdown, no extra text:
             loadingMsg.textContent = 'Widening search radius…';
             restaurants = await searchNearby(widenTo);
             if (restaurants.length) {
-              const miles = Math.round(widenTo / 1600);
-              showError(`Nothing found nearby — widened search to ${miles} miles and found some options!`, true);
+              showError(`Nothing found nearby — widened search to ${formatRadius(widenTo)} and found some options!`, true);
               track('radius_auto_widened', { from: radius, to: widenTo });
             }
           }
