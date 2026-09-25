@@ -1,6 +1,7 @@
 // /admin — IDKPicker control panel (password protected with ADMIN_PASSWORD; any username).
 // Tabs: Requests · Usage · AI & Costs · Banner · Translations
 import { getSettings, saveSettings, db, today, costOf, DEFAULT_SETTINGS } from './_lib/store.js';
+import { accessEnabled, accessUser } from './_lib/access.js';
 import { englishSource, baseTranslation, overrides, langName, tokens, STATIC_LANGS } from './_lib/i18n.js';
 
 const esc = s => String(s ?? '').replace(/[&<>"']/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
@@ -29,10 +30,31 @@ const unauthorized = env => new Response(
   env.ADMIN_PASSWORD ? 'Login required' : 'Admin is not configured: set ADMIN_PASSWORD in Cloudflare Pages settings.',
   { status: 401, headers: { 'WWW-Authenticate': 'Basic realm="IDKPicker admin", charset="UTF-8"', ...NO_STORE } });
 
+// Logging out of the password prompt: answer the cached login with a 401 so the
+// browser forgets it. (With Cloudflare Access, Cloudflare's own logout URL is used.)
+function loggedOut() {
+  return new Response(`<!doctype html><meta name="viewport" content="width=device-width,initial-scale=1"><title>Logged out</title>
+    <body style="font:16px system-ui;background:#FFF8F0;color:#1A1108;display:grid;place-items:center;min-height:90vh;text-align:center">
+    <div><h1 style="font-size:1.4rem">You're logged out 👋</h1><p>If a login box pops up, just press <b>Cancel</b>.</p>
+    <p><a href="/" style="color:#FF5C35">Back to IDKPicker</a> · <a href="/admin" style="color:#FF5C35">Log in again</a></p></div>`,
+    { status: 401, headers: { 'Content-Type': 'text/html; charset=utf-8', 'WWW-Authenticate': 'Basic realm="IDKPicker admin (logged out)"', ...NO_STORE } });
+}
+
 // ── entry point ─────────────────────────────────────────────────────────────
 export async function onRequest(ctx) {
   const { request, env } = ctx;
-  if (!authorized(request, env)) return unauthorized(env);
+  const url0 = new URL(request.url);
+  let who;
+  if (accessEnabled(env)) {
+    // Cloudflare Access protects /admin: require its signed login token.
+    who = await accessUser(request, env);
+    if (!who) return new Response('Please sign in through Cloudflare Access: reload this page.', { status: 403, headers: NO_STORE });
+  } else {
+    if (url0.searchParams.has('logout')) return loggedOut();
+    if (!authorized(request, env)) return unauthorized(env);
+    who = null;
+  }
+  ctx.who = who;
   if (!env.FEEDBACK_KV) return page('Setup needed', '', '<p class="note">FEEDBACK_KV binding is missing — add it in Cloudflare Pages → Settings → Bindings.</p>');
   const url = new URL(request.url);
 
@@ -51,9 +73,9 @@ export async function onRequest(ctx) {
   const tab = url.searchParams.get('tab') || 'requests';
   const views = { requests: viewRequests, usage: viewUsage, ai: viewAi, banner: viewBanner, translations: viewTranslations };
   try {
-    return page(tab, url.searchParams.get('msg') || '', await (views[tab] || viewRequests)(ctx, url));
+    return page(tab, url.searchParams.get('msg') || '', await (views[tab] || viewRequests)(ctx, url), ctx.who);
   } catch (e) {
-    return page(tab, '', `<p class="note err">Something went wrong: ${esc(e.message)}</p>`);
+    return page(tab, '', `<p class="note err">Something went wrong: ${esc(e.message)}</p>`, ctx.who);
   }
 }
 
@@ -443,7 +465,10 @@ async function viewTranslations({ env }, url) {
 }
 
 // ── layout ──────────────────────────────────────────────────────────────────
-function page(tab, msg, body) {
+function page(tab, msg, body, who) {
+  const logout = who
+    ? `<span class="who">${esc(who)}</span> <a class="btn" href="/cdn-cgi/access/logout">Log out</a>`
+    : `<a class="btn" href="/admin?logout=1">Log out</a>`;
   const tabs = [['requests', '📬 Requests'], ['usage', '📊 Usage'], ['ai', '🤖 AI & Costs'], ['banner', '📣 Banner'], ['translations', '🌍 Translations']];
   const html = `<!doctype html><html lang="en"><head><meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1"><meta name="robots" content="noindex">
@@ -504,8 +529,10 @@ function page(tab, msg, body) {
   .previewwrap { width:100%; max-width:520px; } .site-banner { display:flex; gap:12px; background:var(--accent-dim); border:1.5px solid var(--accent); border-radius:10px; padding:8px 12px; font-weight:700; font-size:.86rem; margin-top:4px; }
   .site-banner span:first-child { flex:1; } .site-banner.promo { background:var(--accent); color:#fff; } .site-banner.warn { background:rgba(245,158,11,.12); border-color:#F59E0B; }
   code { font-size:.85em; }
+  .top { display:flex; align-items:center; justify-content:space-between; gap:12px; flex-wrap:wrap; } .top h1 { margin:0 0 12px; }
+  .acct { display:flex; align-items:center; gap:8px; margin-bottom:12px; } .who { color:var(--muted); font-size:.8rem; }
 </style></head><body><main>
-  <h1>IDK<span>Picker</span> admin</h1>
+  <div class="top"><h1>IDK<span>Picker</span> admin</h1><div class="acct">${logout}</div></div>
   <nav class="tabs">${tabs.map(([k, l]) => `<a href="/admin?tab=${k}" class="${tab === k ? 'on' : ''}">${l}</a>`).join('')}</nav>
   ${msg ? `<div class="flash" role="status">${esc(msg)}</div>` : ''}
   ${body}
