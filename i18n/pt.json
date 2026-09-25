@@ -120,5 +120,7 @@
   "lang.auto": "Automático",
   "lang.switchQ": "A maioria das pessoas aqui fala {lang}. Mudar o IDKPicker para {lang}?",
   "lang.switchYes": "Mudar para {lang}",
-  "lang.switchNo": "Não, obrigado"
+  "lang.switchNo": "Não, obrigado",
+  "update.ready": "Uma nova versão do IDKPicker está pronta.",
+  "update.refresh": "Atualizar"
 }
