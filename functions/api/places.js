@@ -25,6 +25,7 @@ export async function onRequestPost(context) {
     url.searchParams.set('type', 'restaurant');
     url.searchParams.set('key', apiKey);
     if (params.keyword) url.searchParams.set('keyword', params.keyword);
+    if (params.language && /^[a-z]{2,3}(-[A-Z]{2})?$/.test(params.language)) url.searchParams.set('language', params.language);
     if (params.minprice !== undefined) url.searchParams.set('minprice', params.minprice);
     if (params.maxprice !== undefined) url.searchParams.set('maxprice', params.maxprice);
 

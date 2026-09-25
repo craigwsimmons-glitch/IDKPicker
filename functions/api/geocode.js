@@ -18,6 +18,8 @@ export async function onRequestGet(context) {
   const url = new URL('https://maps.googleapis.com/maps/api/place/details/json');
   url.searchParams.set('place_id', placeId);
   url.searchParams.set('fields', 'geometry,formatted_address');
+  const language = new URL(context.request.url).searchParams.get('language');
+  if (language && /^[a-z]{2,3}(-[A-Z]{2})?$/.test(language)) url.searchParams.set('language', language);
   url.searchParams.set('key', apiKey);
 
   try {
