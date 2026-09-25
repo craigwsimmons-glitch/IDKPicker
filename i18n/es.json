@@ -73,6 +73,7 @@
   "err.search": "No pudimos conectar con el buscador de restaurantes. ¡Inténtalo en un momento!",
   "err.noResults": "No encontramos restaurantes en tu zona. ¡Prueba otra cocina o un radio mayor!",
   "err.aiFallback": "¡Elegido por las mejores calificaciones y popularidad cerca de ti!",
+  "err.tooMany": "¡Vaya, cuántas elecciones! Tómate un respiro y vuelve a intentarlo en un rato.",
   "locModal.title": "Se necesita tu ubicación",
   "locModal.body": "IDKPicker necesita tu ubicación para encontrar restaurantes cerca. Parece que el acceso está bloqueado. Así puedes solucionarlo:",
   "locModal.close": "Entendido, lo intento de nuevo",

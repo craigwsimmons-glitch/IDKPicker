@@ -73,6 +73,7 @@
   "err.search": "Impossible de joindre notre service de recherche. Réessayez dans un instant !",
   "err.noResults": "Aucun restaurant trouvé dans votre secteur. Essayez une autre cuisine ou une zone plus large !",
   "err.aiFallback": "Choisi selon les meilleures notes et la popularité près de vous !",
+  "err.tooMany": "Waouh, ça fait beaucoup de choix ! Faites une petite pause et réessayez dans un moment.",
   "locModal.title": "Accès à la position requis",
   "locModal.body": "IDKPicker a besoin de votre position pour trouver des restaurants près de vous. On dirait que l'accès est bloqué. Voici comment corriger ça :",
   "locModal.close": "Compris, je réessaie",

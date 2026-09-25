@@ -73,6 +73,7 @@
   "err.search": "Unsere Restaurantsuche ist gerade nicht erreichbar. Versuch es gleich nochmal!",
   "err.noResults": "Keine Restaurants in deiner Nähe gefunden. Probier eine andere Küche oder einen größeren Radius!",
   "err.aiFallback": "Ausgewählt nach Top-Bewertungen und Beliebtheit in deiner Nähe!",
+  "err.tooMany": "Wow, das sind viele Vorschläge! Mach kurz Pause und versuch es gleich nochmal.",
   "locModal.title": "Standortzugriff benötigt",
   "locModal.body": "IDKPicker braucht deinen Standort, um Restaurants in deiner Nähe zu finden. Der Zugriff scheint blockiert zu sein. So behebst du das:",
   "locModal.close": "Verstanden, ich versuch's nochmal",
