@@ -1,4 +1,4 @@
-const CACHE = 'idkpicker-v2';
+const CACHE = 'idkpicker-v3';
 const ASSETS = [
   '/',
   '/index.html',
@@ -30,9 +30,22 @@ self.addEventListener('activate', e => {
 self.addEventListener('fetch', e => {
   const url = new URL(e.request.url);
 
-  // Always go network-first for API calls
-  if (url.pathname.startsWith('/api/')) {
-    e.respondWith(fetch(e.request));
+  // Never cache API calls or the admin page
+  if (url.pathname.startsWith('/api/') || url.pathname.startsWith('/admin')) {
+    return; // let the browser handle it normally
+  }
+
+  // Network first for the page itself, so site updates show up right away
+  if (e.request.mode === 'navigate') {
+    e.respondWith(
+      fetch(e.request).then(response => {
+        if (response.ok && (url.pathname === '/' || url.pathname === '/index.html')) {
+          const copy = response.clone();
+          caches.open(CACHE).then(cache => cache.put('/index.html', copy));
+        }
+        return response;
+      }).catch(() => caches.match('/index.html'))
+    );
     return;
   }
 
