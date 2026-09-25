@@ -805,6 +805,14 @@
       line-height: 1; margin-top: -0.1rem;
     }
     .ios-install-dismiss:hover { color: var(--text); }
+    .install-btn {
+      background: var(--accent); color: #fff; border: none;
+      border-radius: var(--radius-sm); padding: 0.45rem 0.9rem; margin-top: 0.6rem;
+      font-family: 'Nunito', sans-serif; font-size: 0.82rem; font-weight: 800; cursor: pointer;
+    }
+    .install-btn:hover { background: var(--accent-hover); }
+    .btn-feedback[hidden] { display: none; }
+    .footer-actions { display: flex; gap: 0.5rem; justify-content: center; flex-wrap: wrap; }
   </style>
 </head>
 <body>
@@ -820,7 +828,8 @@
       <div class="ios-install-icon">🍽️</div>
       <div class="ios-install-text">
         <strong>Add IDKPicker to your Home Screen</strong>
-        <p>Tap <svg class="share-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 12v8a2 2 0 002 2h12a2 2 0 002-2v-8"/><polyline points="16 6 12 2 8 6"/><line x1="12" y1="2" x2="12" y2="15"/></svg> <strong>Share</strong> then <strong>Add to Home Screen</strong> for the full app experience.</p>
+        <p id="installHowTo">Tap <svg class="share-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 12v8a2 2 0 002 2h12a2 2 0 002-2v-8"/><polyline points="16 6 12 2 8 6"/><line x1="12" y1="2" x2="12" y2="15"/></svg> <strong>Share</strong> then <strong>Add to Home Screen</strong> for the full app experience.</p>
+        <button type="button" class="install-btn" id="installNowBtn" hidden>📲 Install app</button>
       </div>
       <button class="ios-install-dismiss" id="iosInstallDismiss" aria-label="Dismiss install prompt">✕</button>
     </div>
@@ -1042,7 +1051,10 @@
     </div>
 
     <footer role="contentinfo">
-      <button type="button" class="btn-feedback" id="fbOpen">💡 Request an update</button>
+      <div class="footer-actions">
+        <button type="button" class="btn-feedback" id="installOpen" hidden>📲 Install app</button>
+        <button type="button" class="btn-feedback" id="fbOpen">💡 Request an update</button>
+      </div>
       <p>IDKPicker &mdash; Because deciding is exhausting.</p>
       <p style="margin-top:0.3rem">Powered by Google Places &amp; Claude AI &nbsp;·&nbsp; <a href="https://idkpicker.com">idkpicker.com</a></p>
     </footer>
@@ -1067,24 +1079,84 @@
     }
   </script>
 
-  <!-- iOS install prompt -->
+  <!-- Install prompt (iOS + Android/desktop Chrome) -->
   <script>
     (function () {
+      var banner  = document.getElementById('iosInstallBanner');
+      var howTo   = document.getElementById('installHowTo');
+      var nowBtn  = document.getElementById('installNowBtn');
+      var footBtn = document.getElementById('installOpen');
+      var WEEK = 7 * 24 * 60 * 60 * 1000;
+      var deferredPrompt = null;
+
+      function ga(name, params) { if (typeof gtag === 'function') gtag('event', name, params || {}); }
+      function store(k, v) { try { v === null ? localStorage.removeItem(k) : localStorage.setItem(k, v); } catch (e) {} }
+      function read(k) { try { return localStorage.getItem(k); } catch (e) { return null; } }
+
       // Covers iPhone/iPod AND iPads on iOS 13+ which send a desktop UA
       var isIos = /iphone|ipad|ipod/i.test(navigator.userAgent) ||
                   (navigator.platform === 'MacIntel' && navigator.maxTouchPoints > 1);
-      var isStandalone = ('standalone' in navigator) && navigator.standalone;
-      // Re-prompt after 7 days even if previously dismissed
-      var dismissedAt = localStorage.getItem('iosInstallDismissedAt');
-      var dismissed = dismissedAt && (Date.now() - parseInt(dismissedAt, 10)) < 7 * 24 * 60 * 60 * 1000;
-      if (isIos && !isStandalone && !dismissed) {
-        setTimeout(function () {
-          document.getElementById('iosInstallBanner').classList.add('on');
-        }, 1500);
+      var isStandalone = (window.matchMedia && window.matchMedia('(display-mode: standalone)').matches) ||
+                         (('standalone' in navigator) && navigator.standalone);
+
+      // Remember that the app was opened as an installed app. If a later visit happens
+      // in the regular browser, the app was most likely uninstalled — clear any old
+      // dismissal so the prompt comes back right away.
+      if (isStandalone) { store('pwaInstalled', '1'); return; }
+      if (read('pwaInstalled')) { store('pwaInstalled', null); store('iosInstallDismissedAt', null); }
+
+      var dismissedAt = read('iosInstallDismissedAt');
+      var dismissed = dismissedAt && (Date.now() - parseInt(dismissedAt, 10)) < WEEK;
+
+      function showBanner() { banner.classList.add('on'); ga('install_prompt_shown', { platform: isIos ? 'ios' : 'android' }); }
+      function hideBanner() { banner.classList.remove('on'); }
+
+      async function runNativePrompt() {
+        if (!deferredPrompt) return false;
+        deferredPrompt.prompt();
+        var choice = await deferredPrompt.userChoice;
+        ga('install_prompt_choice', { outcome: choice.outcome });
+        deferredPrompt = null;
+        hideBanner();
+        if (choice.outcome !== 'accepted') store('iosInstallDismissedAt', Date.now().toString());
+        return true;
       }
+
+      if (isIos) {
+        footBtn.hidden = false;
+        if (!dismissed) setTimeout(showBanner, 1500);
+      }
+
+      // Android / desktop Chrome & Edge: the browser tells us when the app is installable
+      // (including after an uninstall). Capture it so we can offer our own Install button
+      // instead of relying on the browser's own mini-infobar, which it throttles.
+      window.addEventListener('beforeinstallprompt', function (e) {
+        e.preventDefault();
+        deferredPrompt = e;
+        howTo.textContent = 'Get one-tap access from your home screen — it works like an app.';
+        nowBtn.hidden = false;
+        footBtn.hidden = false;
+        if (!dismissed) setTimeout(showBanner, 1500);
+      });
+
+      window.addEventListener('appinstalled', function () {
+        deferredPrompt = null;
+        hideBanner();
+        footBtn.hidden = true;
+        store('pwaInstalled', '1');
+        ga('app_installed');
+      });
+
+      nowBtn.addEventListener('click', runNativePrompt);
+      footBtn.addEventListener('click', async function () {
+        ga('install_button_clicked');
+        if (await runNativePrompt()) return;
+        showBanner(); // iOS: show the Share → Add to Home Screen instructions
+      });
+
       document.getElementById('iosInstallDismiss').addEventListener('click', function () {
-        document.getElementById('iosInstallBanner').classList.remove('on');
-        localStorage.setItem('iosInstallDismissedAt', Date.now().toString());
+        hideBanner();
+        store('iosInstallDismissedAt', Date.now().toString());
       });
     })();
   </script>
