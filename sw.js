@@ -1,4 +1,4 @@
-const CACHE = 'idkpicker-v5';
+const CACHE = 'idkpicker-v6';
 const ASSETS = [
   '/',
   '/index.html',
