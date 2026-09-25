@@ -42,6 +42,7 @@ export async function onRequestPost({ request, env, waitUntil }) {
     createdAt: new Date(now).toISOString(),
     type, message, email,
     units: body.units === 'km' ? 'km' : 'mi',
+    lang: /^[a-z]{2,3}(-(Hans|Hant|[A-Z]{2}))?$/.test(body.lang || '') ? body.lang : 'en',
     country: request.cf?.country || '',
     city: request.cf?.city || '',
     userAgent: (request.headers.get('User-Agent') || '').slice(0, 300),
