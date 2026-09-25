@@ -669,6 +669,20 @@
     .hours-ok      { background: rgba(34,197,94,0.08); border: 1.5px solid var(--green); color: #166534; }
     .hours-unknown { background: var(--bg2); border: 1.5px solid var(--border); color: var(--text-muted); }
 
+    /* ── Announcement banner (set from /admin) ── */
+    .site-banner {
+      display: flex; align-items: center; gap: 0.75rem; margin-top: 0.75rem;
+      background: var(--accent-dim); color: var(--text); border: 1.5px solid var(--accent);
+      border-radius: var(--radius-sm); padding: 0.6rem 0.9rem; font-size: 0.86rem; font-weight: 700;
+    }
+    .site-banner[hidden] { display: none; }
+    .site-banner.promo { background: var(--accent); color: #fff; }
+    .site-banner.promo a { color: #fff; }
+    .site-banner.warn { background: rgba(245,158,11,0.12); border-color: #F59E0B; }
+    .site-banner span { flex: 1; }
+    .site-banner a { color: var(--accent); font-weight: 800; }
+    .site-banner-x { background: none; border: none; color: inherit; opacity: 0.7; cursor: pointer; font-size: 1rem; }
+
     /* ── Language ── */
     html.i18n-pending body { visibility: hidden; }
     .lang-wrap { position: absolute; top: 0.5rem; right: 0; z-index: 20; }
@@ -922,6 +936,7 @@
   "err.search": "Could not reach our restaurant search service. Try again in a moment!",
   "err.noResults": "No restaurants found in your area. Try a different cuisine or a wider radius!",
   "err.aiFallback": "Picked based on top ratings and popularity near you!",
+  "err.tooMany": "Whoa, that's a lot of picks! Take a breather and try again in a bit.",
   "locModal.title": "Location Access Needed",
   "locModal.body": "IDKPicker needs your location to find restaurants near you. It looks like location access was blocked. Here's how to fix it:",
   "locModal.close": "Got it, I'll try again",
@@ -993,6 +1008,11 @@
   </div>
 
   <div class="container">
+
+    <div class="site-banner" id="siteBanner" role="status" hidden>
+      <span id="siteBannerText"></span>
+      <button type="button" class="site-banner-x" id="siteBannerX" aria-label="Dismiss">✕</button>
+    </div>
 
     <header role="banner">
       <div class="lang-wrap">
@@ -1341,6 +1361,7 @@
     let selectedPrices = new Set(); // empty = all prices
     let lastPick = null;
     let rejectedPlaceIds = new Set(); // track rejected restaurants
+    let pickingAgain = false;
 
     const locDot     = document.getElementById('locDot');
     const locText    = document.getElementById('locText');
@@ -1353,6 +1374,8 @@
     const locModal   = document.getElementById('locModal');
 
     const t = I18N.t;
+    function lsGet(k) { try { return localStorage.getItem(k); } catch { return null; } }
+    function lsSet(k, v) { try { localStorage.setItem(k, v); } catch {} }
 
     /* ── Analytics helper ── */
     function track(eventName, params = {}) {
@@ -1704,46 +1727,26 @@
       // Fall back to including closed places only if fewer than 3 open ones exist
       const openOrUnknown = base.filter(r => r.opening_hours?.open_now !== false);
       const pool = (openOrUnknown.length >= 3 ? openOrUnknown : base).slice(0, 20);
-      const list = pool.map((r, i) =>
-        `${i + 1}. ${r.name} | ⭐ ${r.rating ?? 'N/A'} (${r.user_ratings_total ?? 0} reviews) | Price: ${'$'.repeat(r.price_level || 2)} | Open: ${r.opening_hours?.open_now ?? 'unknown'} | Tags: ${(r.types || []).slice(0, 4).join(', ')}`
-      ).join('\n');
-
-      const cuisineRule = cuisine
-        ? `CRITICAL RULE: The user specifically requested ${cuisine} cuisine. You MUST only pick a restaurant that serves ${cuisine} food. Do NOT pick any restaurant outside this cuisine type, even if it has better ratings. If no restaurant clearly matches, pick the closest match.`
-        : '';
-
-      const selectedPricesArr = [...selectedPrices].sort();
-      const priceRule = selectedPricesArr.length
-        ? `CRITICAL RULE: The user set a budget filter of ${selectedPricesArr.map(p => '$'.repeat(p)).join(' or ')}. You MUST only pick a restaurant whose price level matches. Do NOT pick a restaurant outside this budget, even if it has better ratings.`
-        : '';
-
-      const prompt = `You are IDKPicker, a fun and enthusiastic restaurant recommendation AI. Based on the user's vibe and the restaurant list, pick ONE restaurant and explain why in 1–2 fun, energetic sentences. You only have the restaurant name, rating, price level, and cuisine tags — you do NOT have menu data, so never mention or imply specific dishes, ingredients, or menu items. Base your reason on vibe, atmosphere, cuisine type, ratings, and value instead.
-${cuisineRule ? '\n' + cuisineRule : ''}${priceRule ? '\n' + priceRule : ''}${cuisineRule || priceRule ? '\n' : ''}
-User vibe: "${vibe || 'No specific vibe — just hungry!'}"
-
-Nearby restaurants:
-${list}
-
-${I18N.lang !== 'en' ? `Write the "reason" in ${I18N.englishName()} (language code ${I18N.lang}).\n\n` : ''}Reply ONLY with valid JSON, no markdown, no extra text:
-{"index": <1-${pool.length}>, "reason": "<1-2 fun sentences explaining why this is THE pick>"}`;
-
       try {
         const resp = await fetch('/api/pick', {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ prompt }),
+          body: JSON.stringify({
+            restaurants: pool.map(r => ({
+              name: r.name, rating: r.rating, reviews: r.user_ratings_total || 0, price: r.price_level,
+              open: r.opening_hours?.open_now ?? null, tags: (r.types || []).slice(0, 4),
+            })),
+            vibe, cuisine, prices: [...selectedPrices], lang: I18N.lang, units: distanceUnit, again: pickingAgain,
+          }),
         });
-        if (!resp.ok) {
-          const errData = await resp.json().catch(() => ({}));
-          throw new Error(`AI service error ${resp.status}: ${errData?.error || resp.statusText}`);
-        }
-        const data = await resp.json();
-        if (data.error) throw new Error(data.error);
-        const raw = data.content.map(c => c.text || '').join('').replace(/```json|```/g, '').trim();
-        const parsed = JSON.parse(raw);
-        const pick = pool[parsed.index - 1] || pool[0];
-        return { pick, reason: parsed.reason };
+        const data = await resp.json().catch(() => ({}));
+        if (resp.status === 429) throw Object.assign(new Error(t('err.tooMany')), { userFacing: true });
+        if (!resp.ok || data.error) throw new Error(data.error || `AI service error ${resp.status}`);
+        if (data.fallback) throw new Error('AI unavailable (' + data.reason + ')');
+        const pick = pool[data.index - 1] || pool[0];
+        return { pick, reason: data.reason };
       } catch (err) {
+        if (err.userFacing) throw err;
         console.error('[IDKPicker] AI pick failed:', err.message);
         // Fallback: weighted random by rating
         const scored = pool.map(r => ({
@@ -1913,6 +1916,26 @@ ${I18N.lang !== 'en' ? `Write the "reason" in ${I18N.englishName()} (language co
     applyUnit(distanceUnit);
     I18N.onChange(() => applyUnit(distanceUnit));
 
+    /* ── Announcement banner ── */
+    (async function initBanner() {
+      try {
+        const { banner } = await fetch('/api/config').then(r => r.json());
+        if (!banner || lsGet('bannerDismissed') === banner.id) return;
+        const el = document.getElementById('siteBanner');
+        const txt = document.getElementById('siteBannerText');
+        txt.textContent = banner.text + ' ';
+        if (banner.link && /^https?:\/\//.test(banner.link)) {
+          const a = document.createElement('a');
+          a.href = banner.link; a.target = '_blank'; a.rel = 'noopener'; a.textContent = '→';
+          txt.appendChild(a);
+        }
+        el.className = 'site-banner ' + (banner.style || 'info');
+        el.hidden = false;
+        document.getElementById('siteBannerX').onclick = () => { el.hidden = true; lsSet('bannerDismissed', banner.id); };
+        track('banner_shown', { id: banner.id });
+      } catch {}
+    })();
+
     /* ── Language picker ── */
     const langSelect = document.getElementById('langSelect');
     function renderLangPicker() {
@@ -1964,8 +1987,6 @@ ${I18N.lang !== 'en' ? `Write the "reason" in ${I18N.englishName()} (language co
     };
     const langPrompt = document.getElementById('langPrompt');
     let areaLang = null;
-    function lsGet(k) { try { return localStorage.getItem(k); } catch { return null; } }
-    function lsSet(k, v) { try { localStorage.setItem(k, v); } catch {} }
 
     async function checkAreaLanguage(lat, lng) {
       try {
@@ -2168,14 +2189,15 @@ ${I18N.lang !== 'en' ? `Write the "reason" in ${I18N.englishName()} (language co
     }
 
     document.getElementById('radius').addEventListener('change', () => rejectedPlaceIds.clear());
-    pickBtn.addEventListener('click', () => { rejectedPlaceIds.clear(); doPick(); });
+    pickBtn.addEventListener('click', () => { rejectedPlaceIds.clear(); pickingAgain = false; doPick(); });
     document.getElementById('pickAgainBtn').addEventListener('click', () => {
       if (lastPick?.place_id) rejectedPlaceIds.add(lastPick.place_id);
+      pickingAgain = true;
       track('pick_again', { previous_restaurant: lastPick?.name || 'unknown', rejected_count: rejectedPlaceIds.size });
       doPick();
     });
     document.getElementById('vibe').addEventListener('keydown', e => {
-      if (e.key === 'Enter') { rejectedPlaceIds.clear(); doPick(); }
+      if (e.key === 'Enter') { rejectedPlaceIds.clear(); pickingAgain = false; doPick(); }
     });
     document.getElementById('cuisine').addEventListener('change', e => {
       rejectedPlaceIds.clear();
