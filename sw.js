@@ -1,4 +1,4 @@
-const CACHE = 'idkpicker-v4';
+const CACHE = 'idkpicker-v5';
 const ASSETS = [
   '/',
   '/index.html',
@@ -33,6 +33,17 @@ self.addEventListener('fetch', e => {
   // Never cache API calls or the admin page
   if (url.pathname.startsWith('/api/') || url.pathname.startsWith('/admin')) {
     return; // let the browser handle it normally
+  }
+
+  // Translations and the i18n script: network first so wording updates show up
+  if (url.pathname.startsWith('/i18n/')) {
+    e.respondWith(
+      fetch(e.request).then(response => {
+        if (response.ok) { const copy = response.clone(); caches.open(CACHE).then(c => c.put(e.request, copy)); }
+        return response;
+      }).catch(() => caches.match(e.request))
+    );
+    return;
   }
 
   // Network first for the page itself, so site updates show up right away

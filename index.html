@@ -214,8 +214,9 @@
 
     /* ── Header ── */
     header {
+      position: relative;
       text-align: center;
-      padding: 1rem 0 2rem;
+      padding: 2.75rem 0 2rem;
       animation: fadeDown 0.5s ease both;
     }
 
@@ -668,6 +669,35 @@
     .hours-ok      { background: rgba(34,197,94,0.08); border: 1.5px solid var(--green); color: #166534; }
     .hours-unknown { background: var(--bg2); border: 1.5px solid var(--border); color: var(--text-muted); }
 
+    /* ── Language ── */
+    html.i18n-pending body { visibility: hidden; }
+    .lang-wrap { position: absolute; top: 0.5rem; right: 0; z-index: 20; }
+    [dir="rtl"] .lang-wrap { right: auto; left: 0; }
+    .lang-select {
+      appearance: none; -webkit-appearance: none; cursor: pointer;
+      background: var(--surface); border: 1.5px solid var(--border); color: var(--text-mid);
+      border-radius: 999px; padding: 0.3rem 0.8rem 0.3rem 1.9rem; max-width: 9.5rem;
+      font-family: 'Nunito', sans-serif; font-size: 0.78rem; font-weight: 700;
+      background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%239C856A' stroke-width='2'%3E%3Ccircle cx='12' cy='12' r='10'/%3E%3Cpath d='M2 12h20M12 2a15 15 0 0 1 0 20M12 2a15 15 0 0 0 0 20'/%3E%3C/svg%3E");
+      background-repeat: no-repeat; background-size: 0.95rem; background-position: 0.6rem center;
+    }
+    .lang-select:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
+    .lang-prompt {
+      display: none; background: var(--surface); border: 2px solid var(--accent);
+      border-radius: var(--radius); padding: 0.9rem 1rem; margin-bottom: 1rem;
+      box-shadow: var(--shadow); animation: fadeIn 0.25s ease;
+    }
+    .lang-prompt.on { display: block; }
+    .lang-prompt p { font-size: 0.9rem; font-weight: 700; color: var(--text); margin-bottom: 0.15rem; }
+    .lang-prompt .sub { font-size: 0.8rem; font-weight: 600; color: var(--text-muted); margin-bottom: 0.6rem; }
+    .lang-prompt-actions { display: flex; gap: 0.5rem; flex-wrap: wrap; }
+    .lang-prompt-actions button {
+      border-radius: var(--radius-sm); padding: 0.45rem 0.9rem; cursor: pointer;
+      font-family: 'Nunito', sans-serif; font-size: 0.82rem; font-weight: 800;
+    }
+    .lang-yes { background: var(--accent); color: #fff; border: none; }
+    .lang-no { background: transparent; color: var(--text-muted); border: 1.5px solid var(--border); }
+
     /* ── Units toggle ── */
     .label-row { display: flex; align-items: center; justify-content: space-between; gap: 0.5rem; }
     .unit-toggle { display: inline-flex; background: var(--bg2); border-radius: 999px; padding: 2px; }
@@ -816,6 +846,132 @@
   </style>
 </head>
 <body>
+  <script type="application/json" id="i18n-en">
+{
+  "hero.line": "<strong>Every other tool gives you a list.</strong><br>IDKPicker just picks.",
+  "hero.sub": "AI-powered · Location-based · Free",
+  "loc.where": "Where are you eating?",
+  "loc.findMe": "📍 Find Me",
+  "loc.update": "📍 Update",
+  "loc.detecting": "Detecting…",
+  "loc.gotIt": "Got it! ({coords})",
+  "city.placeholder": "Or search by city, e.g. Birmingham, AL...",
+  "prefs.title": "Your Preferences",
+  "radius.label": "How far?",
+  "unit.mile1": "1 mile",
+  "unit.miles": "{n} miles",
+  "unit.km": "{n} km",
+  "dist.away": "{d} away",
+  "dist.under": "less than {d} away",
+  "cuisine.label": "What type?",
+  "cuisine.any": "Any Cuisine 🌍",
+  "cuisine.american": "American 🍔",
+  "cuisine.italian": "Italian 🍝",
+  "cuisine.mexican": "Mexican 🌮",
+  "cuisine.chinese": "Chinese 🥡",
+  "cuisine.japanese": "Japanese 🍱",
+  "cuisine.thai": "Thai 🍜",
+  "cuisine.indian": "Indian 🍛",
+  "cuisine.mediterranean": "Mediterranean 🫒",
+  "cuisine.pizza": "Pizza 🍕",
+  "cuisine.burgers": "Burgers 🍔",
+  "cuisine.sushi": "Sushi 🍣",
+  "cuisine.bbq": "BBQ 🥩",
+  "cuisine.seafood": "Seafood 🦞",
+  "cuisine.vegetarian": "Vegetarian 🥗",
+  "cuisine.vegan": "Vegan 🌱",
+  "budget.label": "Budget <span class=\"optional\">(tap to filter · none = any price)</span>",
+  "vibe.label": "What's the vibe? <span class=\"optional\">— AI uses this to personalize</span>",
+  "vibe.hint": "The more detail you give, the better the pick. Hit Enter to go! 🎯",
+  "vibe.p1": "romantic date night, somewhere cozy and quiet…",
+  "vibe.p2": "quick lunch solo, nothing too fancy…",
+  "vibe.p3": "loud group hangout, we want energy!",
+  "vibe.p4": "first date, want to impress but not try too hard…",
+  "vibe.p5": "celebrating something special tonight!",
+  "vibe.p6": "just really hungry and need food fast…",
+  "vibe.p7": "outdoor seating, warm evening vibes…",
+  "vibe.p8": "kids in tow, needs to be family friendly…",
+  "vibe.p9": "business lunch, professional atmosphere…",
+  "vibe.p10": "late night craving, what's still open?",
+  "pick.button": "🎲 Pick My Restaurant",
+  "loading.finding": "Finding restaurants near you...",
+  "loading.searching": "Searching restaurants near you…",
+  "loading.widening": "Widening search radius…",
+  "loading.aiPicking": "AI is picking your perfect match…",
+  "result.header": "IDKPicker chose for you",
+  "result.directions": "🗺️ Get Directions",
+  "result.share": "📤 Share",
+  "result.copied": "✅ Copied!",
+  "result.again": "🔄 Pick Again",
+  "badge.reviews": "{n} reviews",
+  "badge.openNow": "✓ Open Now",
+  "badge.mayBeClosed": "⚠️ May Be Closed",
+  "badge.hoursUnknown": "🕐 Hours Unknown",
+  "hours.closedWarn": "⚠️ This place may be closed right now — check before you go",
+  "hours.open": "✓ Open now",
+  "hours.unknown": "🕐 Hours unknown",
+  "share.text": "I let AI pick my restaurant and it chose {name} 🍽️",
+  "share.cta": "Stop overthinking it 👇",
+  "share.title": "AI picked {name} for me!",
+  "msg.widened": "Nothing found nearby — widened search to {r} and found some options!",
+  "err.needLocation": "Tap <strong>📍 Find Me</strong> first so we know where to search!",
+  "err.noGeo": "Your browser doesn't support location. Try Chrome or Safari!",
+  "err.posUnavailable": "Could not detect your location. Make sure you have a signal and try again.",
+  "err.timeout": "Location request timed out. Please try again.",
+  "err.cityNotFound": "Could not find that location. Please try again.",
+  "err.search": "Could not reach our restaurant search service. Try again in a moment!",
+  "err.noResults": "No restaurants found in your area. Try a different cuisine or a wider radius!",
+  "err.aiFallback": "Picked based on top ratings and popularity near you!",
+  "locModal.title": "Location Access Needed",
+  "locModal.body": "IDKPicker needs your location to find restaurants near you. It looks like location access was blocked. Here's how to fix it:",
+  "locModal.close": "Got it, I'll try again",
+  "locHelp.safariIos": "<strong>On iPhone/iPad (Safari):</strong><br>1. Go to <strong>Settings → Privacy & Security → Location Services</strong><br>2. Scroll down to <strong>Safari</strong> → set to <strong>While Using</strong><br>3. Come back and tap Find Me again",
+  "locHelp.chromeIos": "<strong>On iPhone/iPad (Chrome):</strong><br>1. Go to <strong>Settings → Chrome → Location</strong><br>2. Set to <strong>While Using the App</strong><br>3. Come back and tap Find Me again",
+  "locHelp.chrome": "<strong>On Chrome (desktop):</strong><br>1. Click the <strong>🔒 lock icon</strong> in the address bar<br>2. Click <strong>Location</strong> → change to <strong>Allow</strong><br>3. Refresh the page and tap Find Me again",
+  "locHelp.firefox": "<strong>On Firefox:</strong><br>1. Click the <strong>🔒 lock icon</strong> in the address bar<br>2. Click the <strong>✕ next to Location: Blocked</strong> to remove the block<br>3. Refresh the page and tap Find Me again",
+  "locHelp.edge": "<strong>On Edge:</strong><br>1. Click the <strong>🔒 lock icon</strong> in the address bar<br>2. Click <strong>Permissions for this site</strong><br>3. Set <strong>Location</strong> to <strong>Allow</strong><br>4. Refresh the page and tap Find Me again",
+  "locHelp.other": "<strong>To re-enable location:</strong><br>Look for a <strong>🔒 lock icon</strong> in your browser's address bar, click it, and allow location access for this site. Then refresh and try again.",
+  "faq.title": "Common questions",
+  "faq.q1": "What is IDKPicker?",
+  "faq.a1": "A free AI-powered restaurant picker. Give it your location and vibe — it picks one perfect place, no endless scrolling required.",
+  "faq.q2": "How does it work?",
+  "faq.a2": "It uses your GPS to find nearby restaurants via Google Places, then Claude AI picks the best match for your mood, cuisine, and budget.",
+  "faq.q3": "Is it free?",
+  "faq.a3": "Yes — completely free, no account or sign-up needed.",
+  "faq.q4": "Where does it work?",
+  "faq.a4": "Anywhere Google Places has data — most cities worldwide.",
+  "faq.q5": "What if I don't like the pick?",
+  "faq.a5": "Tap <strong>Pick Again</strong> — it automatically excludes the previous pick so you always get a fresh suggestion.",
+  "fb.title": "Request an update",
+  "fb.body": "Got an idea, found a bug, or want something changed? Let us know.",
+  "fb.feature": "✨ Feature",
+  "fb.bug": "🐞 Bug",
+  "fb.other": "💬 Other",
+  "fb.msgLabel": "What should we change?",
+  "fb.msgPlaceholder": "e.g. Show distances in kilometers…",
+  "fb.emailLabel": "Email <span class=\"optional\">(optional — only if you want a reply)</span>",
+  "fb.send": "Send request",
+  "fb.cancel": "Cancel",
+  "fb.tooShort": "Please tell us a bit more.",
+  "fb.badEmail": "That email doesn't look right.",
+  "fb.sending": "Sending…",
+  "fb.thanks": "Thanks! Your request was sent. 🙌",
+  "fb.failed": "Something went wrong — please try again.",
+  "install.title": "Add IDKPicker to your Home Screen",
+  "install.iosHow": "Tap {icon} <strong>Share</strong> then <strong>Add to Home Screen</strong> for the full app experience.",
+  "install.androidHow": "Get one-tap access from your home screen — it works like an app.",
+  "install.button": "📲 Install app",
+  "footer.request": "💡 Request an update",
+  "footer.tagline": "IDKPicker — Because deciding is exhausting.",
+  "footer.powered": "Powered by Google Places & Claude AI",
+  "lang.label": "Language",
+  "lang.auto": "Automatic",
+  "lang.switchQ": "Most people here speak {lang}. Switch IDKPicker to {lang}?",
+  "lang.switchYes": "Switch to {lang}",
+  "lang.switchNo": "No thanks"
+}
+  </script>
+  <script src="/i18n/i18n.js"></script>
 
   <a href="#main" class="skip-link">Skip to main content</a>
 
@@ -827,9 +983,10 @@
     <div class="ios-install-banner-inner">
       <div class="ios-install-icon">🍽️</div>
       <div class="ios-install-text">
-        <strong>Add IDKPicker to your Home Screen</strong>
-        <p id="installHowTo">Tap <svg class="share-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 12v8a2 2 0 002 2h12a2 2 0 002-2v-8"/><polyline points="16 6 12 2 8 6"/><line x1="12" y1="2" x2="12" y2="15"/></svg> <strong>Share</strong> then <strong>Add to Home Screen</strong> for the full app experience.</p>
-        <button type="button" class="install-btn" id="installNowBtn" hidden>📲 Install app</button>
+        <strong data-i18n="install.title">Add IDKPicker to your Home Screen</strong>
+        <template id="shareIconTpl"><svg class="share-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 12v8a2 2 0 002 2h12a2 2 0 002-2v-8"/><polyline points="16 6 12 2 8 6"/><line x1="12" y1="2" x2="12" y2="15"/></svg></template>
+        <p id="installHowTo" data-i18n-html="install.iosHow" data-i18n-icon="shareIconTpl"></p>
+        <button type="button" class="install-btn" id="installNowBtn" hidden data-i18n="install.button">📲 Install app</button>
       </div>
       <button class="ios-install-dismiss" id="iosInstallDismiss" aria-label="Dismiss install prompt">✕</button>
     </div>
@@ -838,11 +995,14 @@
   <div class="container">
 
     <header role="banner">
+      <div class="lang-wrap">
+        <select id="langSelect" class="lang-select" aria-label="Language"></select>
+      </div>
       <div class="logo-wrap">
         <h1 class="logo">IDK<em>Picker</em></h1>
       </div>
-      <p class="hero-line"><strong>Every other tool gives you a list.</strong><br>IDKPicker just picks.</p>
-      <p class="hero-sub">AI-powered · Location-based · Free</p>
+      <p class="hero-line" data-i18n-html="hero.line"><strong>Every other tool gives you a list.</strong><br>IDKPicker just picks.</p>
+      <p class="hero-sub" data-i18n="hero.sub">AI-powered · Location-based · Free</p>
     </header>
 
     <main id="main" role="main">
@@ -851,17 +1011,27 @@
       <div class="location-bar" role="region" aria-label="Location detection">
         <div class="location-status">
           <div class="loc-dot" id="locDot" aria-hidden="true"></div>
-          <span class="loc-text" id="locText" aria-live="polite">Where are you eating?</span>
+          <span class="loc-text" id="locText" aria-live="polite" data-i18n="loc.where">Where are you eating?</span>
         </div>
-        <button class="btn-loc" id="locBtn" aria-label="Detect my current location using GPS">
+        <button class="btn-loc" id="locBtn" data-i18n="loc.findMe">
           📍 Find Me
         </button>
+      </div>
+
+      <!-- "Switch to the local language?" prompt -->
+      <div class="lang-prompt" id="langPrompt" role="dialog" aria-live="polite" aria-labelledby="langPromptQ">
+        <p id="langPromptQ"></p>
+        <div class="sub" id="langPromptSub"></div>
+        <div class="lang-prompt-actions">
+          <button type="button" class="lang-yes" id="langPromptYes"></button>
+          <button type="button" class="lang-no" id="langPromptNo"></button>
+        </div>
       </div>
 
       <!-- City search -->
       <div class="city-search-wrap" role="search" aria-label="Search by city">
         <input type="text" class="city-search-input" id="citySearch"
-          placeholder="Or search by city, e.g. Birmingham, AL..."
+          placeholder="Or search by city, e.g. Birmingham, AL..." data-i18n-placeholder="city.placeholder"
           autocomplete="off" aria-label="Search by city or town" aria-autocomplete="list"
           aria-controls="cityDropdown" aria-expanded="false" />
         <div class="city-dropdown" id="cityDropdown" role="listbox" aria-label="City suggestions"></div>
@@ -869,12 +1039,12 @@
 
       <!-- Preferences -->
       <div class="card" role="region" aria-label="Restaurant preferences">
-        <div class="card-title">Your Preferences</div>
+        <div class="card-title" data-i18n="prefs.title">Your Preferences</div>
         <div class="form-grid">
 
           <div class="form-group">
             <div class="label-row">
-              <label for="radius">How far?</label>
+              <label for="radius" data-i18n="radius.label">How far?</label>
               <div class="unit-toggle" role="group" aria-label="Distance units">
                 <button type="button" data-unit="mi" aria-pressed="true">mi</button>
                 <button type="button" data-unit="km" aria-pressed="false">km</button>
@@ -893,29 +1063,29 @@
           </div>
 
           <div class="form-group">
-            <label for="cuisine">What type?</label>
+            <label for="cuisine" data-i18n="cuisine.label">What type?</label>
             <select id="cuisine" class="field" aria-label="Select cuisine type">
-              <option value="">Any Cuisine 🌍</option>
-              <option value="american">American 🍔</option>
-              <option value="italian">Italian 🍝</option>
-              <option value="mexican">Mexican 🌮</option>
-              <option value="chinese">Chinese 🥡</option>
-              <option value="japanese">Japanese 🍱</option>
-              <option value="thai">Thai 🍜</option>
-              <option value="indian">Indian 🍛</option>
-              <option value="mediterranean">Mediterranean 🫒</option>
-              <option value="pizza">Pizza 🍕</option>
-              <option value="burgers">Burgers 🍔</option>
-              <option value="sushi">Sushi 🍣</option>
-              <option value="bbq">BBQ 🥩</option>
-              <option value="seafood">Seafood 🦞</option>
-              <option value="vegetarian">Vegetarian 🥗</option>
-              <option value="vegan">Vegan 🌱</option>
+              <option value="" data-i18n="cuisine.any">Any Cuisine 🌍</option>
+              <option value="american" data-i18n="cuisine.american">American 🍔</option>
+              <option value="italian" data-i18n="cuisine.italian">Italian 🍝</option>
+              <option value="mexican" data-i18n="cuisine.mexican">Mexican 🌮</option>
+              <option value="chinese" data-i18n="cuisine.chinese">Chinese 🥡</option>
+              <option value="japanese" data-i18n="cuisine.japanese">Japanese 🍱</option>
+              <option value="thai" data-i18n="cuisine.thai">Thai 🍜</option>
+              <option value="indian" data-i18n="cuisine.indian">Indian 🍛</option>
+              <option value="mediterranean" data-i18n="cuisine.mediterranean">Mediterranean 🫒</option>
+              <option value="pizza" data-i18n="cuisine.pizza">Pizza 🍕</option>
+              <option value="burgers" data-i18n="cuisine.burgers">Burgers 🍔</option>
+              <option value="sushi" data-i18n="cuisine.sushi">Sushi 🍣</option>
+              <option value="bbq" data-i18n="cuisine.bbq">BBQ 🥩</option>
+              <option value="seafood" data-i18n="cuisine.seafood">Seafood 🦞</option>
+              <option value="vegetarian" data-i18n="cuisine.vegetarian">Vegetarian 🥗</option>
+              <option value="vegan" data-i18n="cuisine.vegan">Vegan 🌱</option>
             </select>
           </div>
 
           <div class="form-group full">
-            <label id="priceLbl">Budget <span class="optional">(tap to filter · none = any price)</span></label>
+            <label id="priceLbl" data-i18n-html="budget.label">Budget <span class="optional">(tap to filter · none = any price)</span></label>
             <div class="price-group" role="group" aria-labelledby="priceLbl">
               <button class="price-btn" data-price="1" aria-pressed="false" aria-label="Include cheap restaurants">$</button>
               <button class="price-btn" data-price="2" aria-pressed="false" aria-label="Include moderate restaurants">$$</button>
@@ -925,11 +1095,11 @@
           </div>
 
           <div class="form-group full">
-            <label for="vibe">What's the vibe? <span class="optional">— AI uses this to personalize</span></label>
+            <label for="vibe" data-i18n-html="vibe.label">What's the vibe? <span class="optional">— AI uses this to personalize</span></label>
             <input type="text" id="vibe" class="field"
               placeholder="e.g. romantic date night, quick lunch solo, loud group hangout..."
               autocomplete="off" aria-describedby="vibeHint" />
-            <span id="vibeHint" class="hint">The more detail you give, the better the pick. Hit Enter to go! 🎯</span>
+            <span id="vibeHint" class="hint" data-i18n="vibe.hint">The more detail you give, the better the pick. Hit Enter to go! 🎯</span>
           </div>
 
         </div>
@@ -943,7 +1113,7 @@
         <div class="loading-emoji-cycle" id="loadingEmojiCycle" aria-hidden="true">
           <span>🍕</span><span>🍣</span><span>🌮</span><span>🍔</span><span>🍜</span><span>🥩</span><span>🍱</span><span>🌯</span>
         </div>
-        <p id="loadingMsg">Finding restaurants near you...</p>
+        <p id="loadingMsg" data-i18n="loading.finding">Finding restaurants near you...</p>
       </div>
 
       <!-- Error -->
@@ -953,7 +1123,7 @@
       <section class="result-card" id="resultCard" aria-live="polite" aria-label="Your restaurant recommendation">
         <div class="result-header">
           <span aria-hidden="true">✨</span>
-          <span class="result-header-text">IDKPicker chose for you</span>
+          <span class="result-header-text" data-i18n="result.header">IDKPicker chose for you</span>
         </div>
         <div class="result-body">
           <h2 class="result-name" id="rName"></h2>
@@ -962,16 +1132,16 @@
           <div id="rHours" class="hours-bar"></div>
           <blockquote class="ai-reason" id="rReason" aria-label="Why we picked this restaurant"></blockquote>
           <div class="result-actions">
-            <a class="btn-maps" id="rMapsLink" href="#" target="_blank" rel="noopener noreferrer">
+            <a class="btn-maps" id="rMapsLink" href="#" target="_blank" rel="noopener noreferrer" data-i18n="result.directions">
               🗺️ Get Directions
             </a>
             <a class="btn-reserve" id="rReserveLink" href="#" target="_blank" rel="noopener noreferrer">
               ⭐ Yelp
             </a>
-            <button class="btn-share" id="shareBtn" aria-label="Share this restaurant pick">
+            <button class="btn-share" id="shareBtn" data-i18n="result.share">
               📤 Share
             </button>
-            <button class="btn-again" id="pickAgainBtn" aria-label="Pick a different restaurant">
+            <button class="btn-again" id="pickAgainBtn" data-i18n="result.again">
               🔄 Pick Again
             </button>
           </div>
@@ -984,36 +1154,36 @@
     <div id="locModal" class="modal-overlay" role="dialog" aria-modal="true" aria-labelledby="locModalTitle" style="display:none">
       <div class="modal-box">
         <div class="modal-icon">📍</div>
-        <h2 class="modal-title" id="locModalTitle">Location Access Needed</h2>
-        <p class="modal-body">IDKPicker needs your location to find restaurants near you. It looks like location access was blocked. Here's how to fix it:</p>
+        <h2 class="modal-title" id="locModalTitle" data-i18n="locModal.title">Location Access Needed</h2>
+        <p class="modal-body" data-i18n="locModal.body">IDKPicker needs your location to find restaurants near you. It looks like location access was blocked. Here's how to fix it:</p>
         <div class="modal-steps" id="locModalSteps"></div>
-        <button class="modal-close" id="locModalClose">Got it, I'll try again</button>
+        <button class="modal-close" id="locModalClose" data-i18n="locModal.close">Got it, I'll try again</button>
       </div>
     </div>
 
     <!-- FAQ section — visually distinct card -->
     <section class="faq-section" aria-label="Frequently asked questions">
-      <h2 class="faq-title">Common questions</h2>
+      <h2 class="faq-title" data-i18n="faq.title">Common questions</h2>
       <dl class="faq-list">
         <div class="faq-item">
-          <dt>What is IDKPicker?</dt>
-          <dd>A free AI-powered restaurant picker. Give it your location and vibe — it picks one perfect place, no endless scrolling required.</dd>
+          <dt data-i18n="faq.q1">What is IDKPicker?</dt>
+          <dd data-i18n-html="faq.a1">A free AI-powered restaurant picker. Give it your location and vibe — it picks one perfect place, no endless scrolling required.</dd>
         </div>
         <div class="faq-item">
-          <dt>How does it work?</dt>
-          <dd>It uses your GPS to find nearby restaurants via Google Places, then Claude AI picks the best match for your mood, cuisine, and budget.</dd>
+          <dt data-i18n="faq.q2">How does it work?</dt>
+          <dd data-i18n-html="faq.a2">It uses your GPS to find nearby restaurants via Google Places, then Claude AI picks the best match for your mood, cuisine, and budget.</dd>
         </div>
         <div class="faq-item">
-          <dt>Is it free?</dt>
-          <dd>Yes — completely free, no account or sign-up needed.</dd>
+          <dt data-i18n="faq.q3">Is it free?</dt>
+          <dd data-i18n-html="faq.a3">Yes — completely free, no account or sign-up needed.</dd>
         </div>
         <div class="faq-item">
-          <dt>Where does it work?</dt>
-          <dd>Anywhere Google Places has data — most cities worldwide.</dd>
+          <dt data-i18n="faq.q4">Where does it work?</dt>
+          <dd data-i18n-html="faq.a4">Anywhere Google Places has data — most cities worldwide.</dd>
         </div>
         <div class="faq-item">
-          <dt>What if I don't like the pick?</dt>
-          <dd>Tap <strong>Pick Again</strong> — it automatically excludes the previous pick so you always get a fresh suggestion.</dd>
+          <dt data-i18n="faq.q5">What if I don't like the pick?</dt>
+          <dd data-i18n-html="faq.a5">Tap <strong>Pick Again</strong> — it automatically excludes the previous pick so you always get a fresh suggestion.</dd>
         </div>
       </dl>
     </section>
@@ -1022,21 +1192,21 @@
     <div id="fbModal" class="modal-overlay" role="dialog" aria-modal="true" aria-labelledby="fbModalTitle" style="display:none">
       <div class="modal-box">
         <div class="modal-icon">💡</div>
-        <h2 class="modal-title" id="fbModalTitle">Request an update</h2>
-        <p class="modal-body">Got an idea, found a bug, or want something changed? Let us know.</p>
+        <h2 class="modal-title" id="fbModalTitle" data-i18n="fb.title">Request an update</h2>
+        <p class="modal-body" data-i18n="fb.body">Got an idea, found a bug, or want something changed? Let us know.</p>
         <form class="fb-form" id="fbForm" novalidate>
           <div class="fb-types" role="group" aria-label="Request type">
-            <button type="button" data-type="feature" aria-pressed="true">✨ Feature</button>
-            <button type="button" data-type="bug" aria-pressed="false">🐞 Bug</button>
-            <button type="button" data-type="other" aria-pressed="false">💬 Other</button>
+            <button type="button" data-type="feature" aria-pressed="true" data-i18n="fb.feature">✨ Feature</button>
+            <button type="button" data-type="bug" aria-pressed="false" data-i18n="fb.bug">🐞 Bug</button>
+            <button type="button" data-type="other" aria-pressed="false" data-i18n="fb.other">💬 Other</button>
           </div>
           <div class="form-group">
-            <label for="fbMessage">What should we change?</label>
+            <label for="fbMessage" data-i18n="fb.msgLabel">What should we change?</label>
             <textarea id="fbMessage" class="field" maxlength="2000" required
-              placeholder="e.g. Show distances in kilometers…"></textarea>
+              placeholder="e.g. Show distances in kilometers…" data-i18n-placeholder="fb.msgPlaceholder"></textarea>
           </div>
           <div class="form-group">
-            <label for="fbEmail">Email <span class="optional">(optional — only if you want a reply)</span></label>
+            <label for="fbEmail" data-i18n-html="fb.emailLabel">Email <span class="optional">(optional — only if you want a reply)</span></label>
             <input type="email" id="fbEmail" class="field" maxlength="200" autocomplete="email" placeholder="you@example.com" />
           </div>
           <div class="fb-hp" aria-hidden="true">
@@ -1044,24 +1214,24 @@
             <input type="text" id="fbWebsite" tabindex="-1" autocomplete="off" />
           </div>
           <div class="fb-status" id="fbStatus" role="status" aria-live="polite"></div>
-          <button type="submit" class="modal-close" id="fbSubmit">Send request</button>
-          <button type="button" class="fb-cancel" id="fbCancel">Cancel</button>
+          <button type="submit" class="modal-close" id="fbSubmit" data-i18n="fb.send">Send request</button>
+          <button type="button" class="fb-cancel" id="fbCancel" data-i18n="fb.cancel">Cancel</button>
         </form>
       </div>
     </div>
 
     <footer role="contentinfo">
       <div class="footer-actions">
-        <button type="button" class="btn-feedback" id="installOpen" hidden>📲 Install app</button>
-        <button type="button" class="btn-feedback" id="fbOpen">💡 Request an update</button>
+        <button type="button" class="btn-feedback" id="installOpen" hidden data-i18n="install.button">📲 Install app</button>
+        <button type="button" class="btn-feedback" id="fbOpen" data-i18n="footer.request">💡 Request an update</button>
       </div>
-      <p>IDKPicker &mdash; Because deciding is exhausting.</p>
-      <p style="margin-top:0.3rem">Powered by Google Places &amp; Claude AI &nbsp;·&nbsp; <a href="https://idkpicker.com">idkpicker.com</a></p>
+      <p data-i18n="footer.tagline">IDKPicker — Because deciding is exhausting.</p>
+      <p style="margin-top:0.3rem"><span data-i18n="footer.powered">Powered by Google Places &amp; Claude AI</span> &nbsp;·&nbsp; <a href="https://idkpicker.com">idkpicker.com</a></p>
     </footer>
 
   <!-- Sticky Pick button -->
   <div class="pick-cta-wrap">
-    <button class="btn-pick" id="pickBtn" aria-live="polite" aria-busy="false">
+    <button class="btn-pick" id="pickBtn" aria-live="polite" aria-busy="false" data-i18n="pick.button">
       🎲 Pick My Restaurant
     </button>
   </div>
@@ -1133,7 +1303,9 @@
       window.addEventListener('beforeinstallprompt', function (e) {
         e.preventDefault();
         deferredPrompt = e;
-        howTo.textContent = 'Get one-tap access from your home screen — it works like an app.';
+        howTo.removeAttribute('data-i18n-html');
+        howTo.setAttribute('data-i18n', 'install.androidHow');
+        howTo.textContent = I18N.t('install.androidHow');
         nowBtn.hidden = false;
         footBtn.hidden = false;
         if (!dismissed) setTimeout(showBanner, 1500);
@@ -1180,6 +1352,8 @@
     const resultCard = document.getElementById('resultCard');
     const locModal   = document.getElementById('locModal');
 
+    const t = I18N.t;
+
     /* ── Analytics helper ── */
     function track(eventName, params = {}) {
       if (typeof gtag === 'function') {
@@ -1192,20 +1366,10 @@
     window.addEventListener('beforeunload', () => {
       track('page_engagement', { seconds: Math.round((Date.now() - _pageStart) / 1000) });
     });
-    const vibePlaceholders = [
-      'romantic date night, somewhere cozy and quiet…',
-      'quick lunch solo, nothing too fancy…',
-      'loud group hangout, we want energy!',
-      'first date, want to impress but not try too hard…',
-      'celebrating something special tonight!',
-      'just really hungry and need food fast…',
-      'outdoor seating, warm evening vibes…',
-      'kids in tow, needs to be family friendly…',
-      'business lunch, professional atmosphere…',
-      'late night craving, what\'s still open?',
-    ];
-    document.getElementById('vibe').placeholder =
-      vibePlaceholders[Math.floor(Math.random() * vibePlaceholders.length)];
+    const vibeIdx = 1 + Math.floor(Math.random() * 10);
+    function setVibePlaceholder() { document.getElementById('vibe').placeholder = t('vibe.p' + vibeIdx); }
+    setVibePlaceholder();
+    I18N.onChange(setVibePlaceholder);
 
     /* ── Price toggles — empty set = all prices ── */
     document.querySelectorAll('.price-btn').forEach(btn => {
@@ -1314,35 +1478,18 @@
     }
 
     const locInstructions = {
-      'safari-ios': `<strong>On iPhone/iPad (Safari):</strong><br>
-        1. Go to <strong>Settings → Privacy & Security → Location Services</strong><br>
-        2. Scroll down to <strong>Safari</strong> → set to <strong>While Using</strong><br>
-        3. Come back and tap Find Me again`,
-      'chrome-ios': `<strong>On iPhone/iPad (Chrome):</strong><br>
-        1. Go to <strong>Settings → Chrome → Location</strong><br>
-        2. Set to <strong>While Using the App</strong><br>
-        3. Come back and tap Find Me again`,
-      'chrome': `<strong>On Chrome (desktop):</strong><br>
-        1. Click the <strong>🔒 lock icon</strong> in the address bar<br>
-        2. Click <strong>Location</strong> → change to <strong>Allow</strong><br>
-        3. Refresh the page and tap Find Me again`,
-      'firefox': `<strong>On Firefox:</strong><br>
-        1. Click the <strong>🔒 lock icon</strong> in the address bar<br>
-        2. Click the <strong>✕ next to Location: Blocked</strong> to remove the block<br>
-        3. Refresh the page and tap Find Me again`,
-      'edge': `<strong>On Edge:</strong><br>
-        1. Click the <strong>🔒 lock icon</strong> in the address bar<br>
-        2. Click <strong>Permissions for this site</strong><br>
-        3. Set <strong>Location</strong> to <strong>Allow</strong><br>
-        4. Refresh the page and tap Find Me again`,
-      'other': `<strong>To re-enable location:</strong><br>
-        Look for a <strong>🔒 lock icon</strong> in your browser's address bar, click it, and allow location access for this site. Then refresh and try again.`,
+      'safari-ios': 'locHelp.safariIos',
+      'chrome-ios': 'locHelp.chromeIos',
+      'chrome':     'locHelp.chrome',
+      'firefox':    'locHelp.firefox',
+      'edge':       'locHelp.edge',
+      'other':      'locHelp.other',
     };
 
     function showLocModal() {
       const browser = getBrowser();
       document.getElementById('locModalSteps').innerHTML =
-        locInstructions[browser] || locInstructions['other'];
+        t(locInstructions[browser] || locInstructions['other']);
       locModal.style.display = 'flex';
       document.getElementById('locModalClose').focus();
       track('location_denied', { browser });
@@ -1365,15 +1512,15 @@
     /* ── Geolocation (shared function) ── */
     function detectLocation(silent = false) {
       if (!navigator.geolocation) {
-        if (!silent) showError("Your browser doesn't support location. Try Chrome or Safari!");
+        if (!silent) showError(t('err.noGeo'));
         return;
       }
-      locBtn.textContent = 'Detecting…';
+      locBtn.textContent = t('loc.detecting');
       locBtn.disabled = true;
 
       // Safety net — re-enable button after 12s no matter what
       const safetyTimer = setTimeout(() => {
-        locBtn.textContent = '📍 Find Me';
+        locBtn.textContent = t('loc.findMe');
         locBtn.disabled = false;
       }, 12000);
 
@@ -1383,23 +1530,26 @@
           userLat = pos.coords.latitude;
           userLng = pos.coords.longitude;
           locDot.classList.add('on');
-          locText.textContent = `Got it! (${userLat.toFixed(3)}, ${userLng.toFixed(3)})`;
-          locBtn.textContent = '📍 Update';
-          locBtn.setAttribute('aria-label', 'Update my current location');
+          locText.removeAttribute('data-i18n');
+          locText.dataset.coords = `${userLat.toFixed(3)}, ${userLng.toFixed(3)}`;
+          locText.textContent = t('loc.gotIt', { coords: locText.dataset.coords });
+          locBtn.textContent = t('loc.update');
+          locBtn.removeAttribute('data-i18n');
+          checkAreaLanguage(userLat, userLng);
           locBtn.disabled = false;
           track('location_detected', { accuracy: Math.round(pos.coords.accuracy), auto: silent });
         },
         err => {
           clearTimeout(safetyTimer);
-          locBtn.textContent = '📍 Find Me';
+          locBtn.textContent = t('loc.findMe');
           locBtn.disabled = false;
           if (err.code === 1) {
             if (!silent) showLocModal();
           } else if (err.code === 2) {
-            if (!silent) showError('Could not detect your location. Make sure you have a signal and try again.');
+            if (!silent) showError(t('err.posUnavailable'));
             track('location_error', { error: 'position_unavailable' });
           } else {
-            if (!silent) showError('Location request timed out. Please try again.');
+            if (!silent) showError(t('err.timeout'));
             track('location_error', { error: 'timeout' });
           }
         },
@@ -1419,9 +1569,12 @@
     function setLocation(lat, lng, name) {
       userLat = lat; userLng = lng;
       locDot.classList.add('on');
+      locText.removeAttribute('data-i18n');
+      delete locText.dataset.coords;
       locText.textContent = name;
-      locBtn.textContent = '📍 Update';
-      locBtn.setAttribute('aria-label', 'Update my current location');
+      locBtn.textContent = t('loc.update');
+      locBtn.removeAttribute('data-i18n');
+      checkAreaLanguage(lat, lng);
       track('location_city_selected', { city: name });
     }
 
@@ -1456,12 +1609,12 @@
       citySearch.value = prediction.description;
       closeCityDropdown();
       try {
-        const resp = await fetch(`/api/geocode?place_id=${encodeURIComponent(prediction.place_id)}`);
+        const resp = await fetch(`/api/geocode?place_id=${encodeURIComponent(prediction.place_id)}&language=${I18N.googleLang()}`);
         const data = await resp.json();
         if (data.error) throw new Error(data.error);
         setLocation(data.lat, data.lng, data.name);
       } catch {
-        showError('Could not find that location. Please try again.');
+        showError(t('err.cityNotFound'));
       }
     }
 
@@ -1479,7 +1632,7 @@
       if (val.length < 2) { closeCityDropdown(); return; }
       cityDebounce = setTimeout(async () => {
         try {
-          const resp = await fetch(`/api/autocomplete?input=${encodeURIComponent(val)}`);
+          const resp = await fetch(`/api/autocomplete?input=${encodeURIComponent(val)}&language=${I18N.googleLang()}`);
           const data = await resp.json();
           renderCityOptions(data.predictions || []);
         } catch { closeCityDropdown(); }
@@ -1518,7 +1671,7 @@
     /* ── Search via Cloudflare Function ── */
     async function searchNearby(radiusOverride) {
       const radius = radiusOverride || +document.getElementById('radius').value;
-      const body = { lat: userLat, lng: userLng, radius };
+      const body = { lat: userLat, lng: userLng, radius, language: I18N.googleLang() };
 
       // Only send price filters if user has selected some
       if (selectedPrices.size > 0) {
@@ -1535,7 +1688,7 @@
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(body),
       });
-      if (!resp.ok) throw new Error('Could not reach our restaurant search service. Try again in a moment!');
+      if (!resp.ok) throw new Error(t('err.search'));
       const data = await resp.json();
       if (data.error) throw new Error(data.error);
       return data.results || [];
@@ -1571,7 +1724,7 @@ User vibe: "${vibe || 'No specific vibe — just hungry!'}"
 Nearby restaurants:
 ${list}
 
-Reply ONLY with valid JSON, no markdown, no extra text:
+${I18N.lang !== 'en' ? `Write the "reason" in ${I18N.englishName()} (language code ${I18N.lang}).\n\n` : ''}Reply ONLY with valid JSON, no markdown, no extra text:
 {"index": <1-${pool.length}>, "reason": "<1-2 fun sentences explaining why this is THE pick>"}`;
 
       try {
@@ -1599,7 +1752,7 @@ Reply ONLY with valid JSON, no markdown, no extra text:
         const total = scored.reduce((a, b) => a + b.w, 0);
         let rand = Math.random() * total;
         const pick = scored.find(s => (rand -= s.w) <= 0)?.r || pool[0];
-        return { pick, reason: `Picked based on top ratings and popularity near you! (AI unavailable: ${err.message})` };
+        return { pick, reason: t('err.aiFallback') };
       }
     }
 
@@ -1609,15 +1762,15 @@ Reply ONLY with valid JSON, no markdown, no extra text:
       const reason = document.getElementById('rReason').textContent || '';
       const price  = lastPick.price_level ? ' · ' + '$'.repeat(lastPick.price_level) : '';
       const rating = lastPick.rating ? ` · ⭐ ${lastPick.rating}` : '';
-      const text = `I let AI pick my restaurant and it chose ${lastPick.name}${price}${rating} 🍽️\n\n"${reason.substring(0, 120)}${reason.length > 120 ? '…' : ''}"\n\nStop overthinking it 👇\nhttps://idkpicker.com`;
+      const text = `${t('share.text', { name: lastPick.name + price + rating })}\n\n"${reason.substring(0, 120)}${reason.length > 120 ? '…' : ''}"\n\n${t('share.cta')}\nhttps://idkpicker.com`;
       if (navigator.share) {
-        navigator.share({ title: `AI picked ${lastPick.name} for me!`, text }).catch(() => {});
+        navigator.share({ title: t('share.title', { name: lastPick.name }), text }).catch(() => {});
         track('share', { method: 'native', restaurant: lastPick.name });
       } else {
         navigator.clipboard.writeText(text).then(() => {
           const btn = document.getElementById('shareBtn');
-          btn.textContent = '✅ Copied!';
-          setTimeout(() => { btn.textContent = '📤 Share'; }, 2000);
+          btn.textContent = t('result.copied');
+          setTimeout(() => { btn.textContent = t('result.share'); }, 2000);
           track('share', { method: 'clipboard', restaurant: lastPick.name });
         });
       }
@@ -1635,16 +1788,17 @@ Reply ONLY with valid JSON, no markdown, no extra text:
         badges.innerHTML += `<span class="badge hi" aria-label="Rating: ${restaurant.rating} out of 5">${restaurant.rating} ${stars}</span>`;
       }
       if (restaurant.user_ratings_total) {
-        badges.innerHTML += `<span class="badge" aria-label="${restaurant.user_ratings_total} reviews">${restaurant.user_ratings_total.toLocaleString()} reviews</span>`;
+        badges.innerHTML += `<span class="badge" aria-label="${t('badge.reviews', { n: restaurant.user_ratings_total })}">${t('badge.reviews', { n: restaurant.user_ratings_total.toLocaleString(I18N.lang) })}</span>`;
       }
       if (restaurant.price_level) {
         badges.innerHTML += `<span class="badge price-${restaurant.price_level}" aria-label="Price: ${'$'.repeat(restaurant.price_level)}">${'$'.repeat(restaurant.price_level)}</span>`;
       }
       if (restaurant.opening_hours?.open_now !== undefined) {
         const open = restaurant.opening_hours.open_now;
-        badges.innerHTML += `<span class="badge ${open ? 'open' : 'closed-badge'}" aria-label="${open ? 'Open now' : 'May be closed — check hours'}">${open ? '✓ Open Now' : '⚠️ May Be Closed'}</span>`;
+        const openLabel = open ? t('badge.openNow') : t('badge.mayBeClosed');
+        badges.innerHTML += `<span class="badge ${open ? 'open' : 'closed-badge'}">${openLabel}</span>`;
       } else {
-        badges.innerHTML += `<span class="badge" aria-label="Hours unknown">🕐 Hours Unknown</span>`;
+        badges.innerHTML += `<span class="badge">${t('badge.hoursUnknown')}</span>`;
       }
       if (userLat && userLng && restaurant.geometry?.location) {
         const distMi = calcDistanceMiles(userLat, userLng, restaurant.geometry.location.lat, restaurant.geometry.location.lng);
@@ -1655,13 +1809,13 @@ Reply ONLY with valid JSON, no markdown, no extra text:
       // Hours status
       const hoursEl = document.getElementById('rHours');
       if (restaurant.opening_hours?.open_now === false) {
-        hoursEl.innerHTML = `⚠️ This place may be closed right now — check before you go`;
+        hoursEl.textContent = t('hours.closedWarn');
         hoursEl.className = 'hours-warning on';
       } else if (restaurant.opening_hours?.open_now === true) {
-        hoursEl.innerHTML = `✓ Open now`;
+        hoursEl.textContent = t('hours.open');
         hoursEl.className = 'hours-ok on';
       } else {
-        hoursEl.innerHTML = `🕐 Hours unknown`;
+        hoursEl.textContent = t('hours.unknown');
         hoursEl.className = 'hours-unknown on';
       }
 
@@ -1672,13 +1826,11 @@ Reply ONLY with valid JSON, no markdown, no extra text:
 
       const mapsLink = document.getElementById('rMapsLink');
       mapsLink.href = `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(restaurant.name)}&query_place_id=${restaurant.place_id}`;
-      mapsLink.setAttribute('aria-label', `Get directions to ${restaurant.name}`);
       mapsLink.onclick = () => track('get_directions', { restaurant: restaurant.name });
 
       const reserveLink = document.getElementById('rReserveLink');
       const yelpLocation = restaurant.vicinity || '';
       reserveLink.href = `https://www.yelp.com/search?find_desc=${encodeURIComponent(restaurant.name)}&find_loc=${encodeURIComponent(yelpLocation)}`;
-      reserveLink.setAttribute('aria-label', `View ${restaurant.name} on Yelp`);
       reserveLink.onclick = () => track('reserve_table', { restaurant: restaurant.name });
 
       resultCard.classList.add('on');
@@ -1704,8 +1856,8 @@ Reply ONLY with valid JSON, no markdown, no extra text:
 
     /* ── Distance units (mi / km) ── */
     const RADIUS_OPTIONS = {
-      mi: [[800,'0.5 miles'],[1600,'1 mile'],[3200,'2 miles'],[8000,'5 miles'],[16000,'10 miles'],[24000,'15 miles'],[32000,'20 miles'],[40000,'25 miles']],
-      km: [[1000,'1 km'],[2000,'2 km'],[3000,'3 km'],[5000,'5 km'],[10000,'10 km'],[15000,'15 km'],[25000,'25 km'],[40000,'40 km']],
+      mi: [[800,0.5],[1600,1],[3200,2],[8000,5],[16000,10],[24000,15],[32000,20],[40000,25]],
+      km: [[1000,1],[2000,2],[3000,3],[5000,5],[10000,10],[15000,15],[25000,25],[40000,40]],
     };
     function defaultUnit() {
       // US, UK, Liberia and Myanmar use miles for road distances; everyone else km
@@ -1718,17 +1870,18 @@ Reply ONLY with valid JSON, no markdown, no extra text:
     try { distanceUnit = localStorage.getItem('distanceUnit') || defaultUnit(); } catch { distanceUnit = defaultUnit(); }
     if (!RADIUS_OPTIONS[distanceUnit]) distanceUnit = 'mi';
 
+    const num = n => n.toLocaleString(I18N.lang, { maximumFractionDigits: 1 });
     function formatDistance(miles) {
-      if (distanceUnit === 'km') {
-        const km = miles * 1.609344;
-        return km < 0.1 ? 'less than 0.1 km away' : `${km.toFixed(1)} km away`;
-      }
-      return miles < 0.1 ? 'less than 0.1 mi away' : `${miles.toFixed(1)} mi away`;
+      const unit = distanceUnit === 'km' ? 'km' : 'mi';
+      const d = distanceUnit === 'km' ? miles * 1.609344 : miles;
+      return d < 0.1 ? t('dist.under', { d: `${num(0.1)} ${unit}` }) : t('dist.away', { d: `${num(+d.toFixed(1))} ${unit}` });
+    }
+    function unitLabel(n, unit) {
+      if (unit === 'km') return t('unit.km', { n: num(n) });
+      return n === 1 ? t('unit.mile1') : t('unit.miles', { n: num(n) });
     }
     function formatRadius(meters) {
-      if (distanceUnit === 'km') return `${Math.round(meters / 1000)} km`;
-      const mi = Math.round(meters / 1609.344);
-      return `${mi} mile${mi === 1 ? '' : 's'}`;
+      return distanceUnit === 'km' ? unitLabel(Math.round(meters / 1000), 'km') : unitLabel(Math.round(meters / 1609.344), 'mi');
     }
     function applyUnit(unit, { fromUser = false } = {}) {
       const select = document.getElementById('radius');
@@ -1737,8 +1890,8 @@ Reply ONLY with valid JSON, no markdown, no extra text:
       // keep the closest equivalent radius when switching
       let best = opts[0][0];
       for (const [m] of opts) if (Math.abs(m - current) < Math.abs(best - current)) best = m;
-      select.innerHTML = opts.map(([m, label]) =>
-        `<option value="${m}"${m === best ? ' selected' : ''}>${label}</option>`).join('');
+      select.innerHTML = opts.map(([m, n]) =>
+        `<option value="${m}"${m === best ? ' selected' : ''}>${unitLabel(n, unit)}</option>`).join('');
       distanceUnit = unit;
       document.querySelectorAll('.unit-toggle button').forEach(b =>
         b.setAttribute('aria-pressed', String(b.dataset.unit === unit)));
@@ -1757,7 +1910,106 @@ Reply ONLY with valid JSON, no markdown, no extra text:
     }
     document.querySelectorAll('.unit-toggle button').forEach(b =>
       b.addEventListener('click', () => { applyUnit(b.dataset.unit, { fromUser: true }); rejectedPlaceIds.clear(); }));
-    if (distanceUnit !== 'mi') applyUnit(distanceUnit);
+    applyUnit(distanceUnit);
+    I18N.onChange(() => applyUnit(distanceUnit));
+
+    /* ── Language picker ── */
+    const langSelect = document.getElementById('langSelect');
+    function renderLangPicker() {
+      const codes = [...I18N.picker];
+      if (!codes.includes(I18N.lang)) codes.push(I18N.lang);
+      const opts = codes.map(c => [c, I18N.nativeName(c)]).sort((a, b) => a[1].localeCompare(b[1]));
+      langSelect.innerHTML = `<option value="auto">${t('lang.auto')}</option>` +
+        opts.map(([c, n]) => `<option value="${c}">${n}</option>`).join('');
+      langSelect.value = I18N.explicit ? I18N.lang : 'auto';
+      if (!I18N.explicit) langSelect.options[0].textContent = I18N.nativeName(I18N.lang);
+      langSelect.setAttribute('aria-label', t('lang.label'));
+    }
+    renderLangPicker();
+    I18N.onChange(renderLangPicker);
+    langSelect.addEventListener('change', () => {
+      track('language_changed', { language: langSelect.value, source: 'picker' });
+      I18N.setLang(langSelect.value);
+    });
+    // Keep text that was filled in by code in the current language
+    I18N.onChange(() => {
+      if (userLat && locBtn.getAttribute('data-i18n') === null) locBtn.textContent = t('loc.update');
+      if (locText.dataset.coords) locText.textContent = t('loc.gotIt', { coords: locText.dataset.coords });
+    });
+
+    /* ── "Switch to the local language?" prompt after Find Me / city search ── */
+    // Main language by country (ISO 3166). Regions override where the local language differs.
+    const COUNTRY_LANG = {
+      US:'en', GB:'en', IE:'en', AU:'en', NZ:'en', CA:'en', JM:'en', BS:'en', BB:'en', TT:'en', GY:'en', BZ:'en', SG:'en', ZA:'en',
+      NG:'en', GH:'en', KE:'en', UG:'en', ZM:'en', ZW:'en', BW:'en', LR:'en', SL:'en', GM:'en', PH:'en', MT:'en', NA:'en',
+      ES:'es', MX:'es', AR:'es', CO:'es', PE:'es', VE:'es', CL:'es', EC:'es', GT:'es', CU:'es', BO:'es', DO:'es', HN:'es',
+      PY:'es', SV:'es', NI:'es', CR:'es', PA:'es', UY:'es', PR:'es', GQ:'es',
+      BR:'pt', PT:'pt', AO:'pt', MZ:'pt', CV:'pt', GW:'pt', ST:'pt', TL:'pt',
+      FR:'fr', LU:'fr', MC:'fr', SN:'fr', CI:'fr', CM:'fr', ML:'fr', BF:'fr', NE:'fr', TD:'fr', GN:'fr', BJ:'fr', TG:'fr',
+      CD:'fr', CG:'fr', GA:'fr', MG:'fr', HT:'fr', BI:'fr', DJ:'fr', KM:'fr', RW:'fr', CF:'fr',
+      DE:'de', AT:'de', CH:'de', LI:'de', IT:'it', SM:'it', VA:'it', NL:'nl', BE:'nl', SR:'nl',
+      RU:'ru', BY:'ru', KZ:'kk', KG:'ru', UA:'uk', PL:'pl', CZ:'cs', SK:'sk', HU:'hu', RO:'ro', MD:'ro', BG:'bg',
+      GR:'el', CY:'el', TR:'tr', RS:'sr', ME:'sr', HR:'hr', BA:'bs', SI:'sl', MK:'mk', AL:'sq', XK:'sq',
+      LT:'lt', LV:'lv', EE:'et', FI:'fi', SE:'sv', DK:'da', NO:'nb', IS:'is', AD:'ca',
+      SA:'ar', AE:'ar', EG:'ar', IQ:'ar', JO:'ar', KW:'ar', LB:'ar', LY:'ar', MA:'ar', DZ:'ar', TN:'ar', OM:'ar', QA:'ar',
+      BH:'ar', SY:'ar', YE:'ar', SD:'ar', PS:'ar', MR:'ar', IL:'he', IR:'fa', AF:'fa', PK:'ur', IN:'hi', BD:'bn', NP:'ne',
+      LK:'si', TH:'th', VN:'vi', ID:'id', MY:'ms', BN:'ms', CN:'zh-Hans', TW:'zh-Hant', HK:'zh-Hant', MO:'zh-Hant',
+      JP:'ja', KR:'ko', MN:'mn', KH:'km', LA:'lo', MM:'my', GE:'ka', AM:'hy', AZ:'az', UZ:'uz', TJ:'tg', TM:'tk',
+      TZ:'sw', ET:'am', SO:'so',
+    };
+    const REGION_LANG = {
+      'CA-QC':'fr', 'CH-GE':'fr', 'CH-VD':'fr', 'CH-NE':'fr', 'CH-JU':'fr', 'CH-TI':'it', 'BE-WAL':'fr', 'BE-BRU':'fr',
+      'ES-CT':'ca', 'IN-TN':'ta', 'IN-KA':'kn', 'IN-KL':'ml', 'IN-AP':'te', 'IN-TG':'te', 'IN-MH':'mr', 'IN-WB':'bn',
+      'IN-GJ':'gu', 'IN-PB':'pa',
+    };
+    const langPrompt = document.getElementById('langPrompt');
+    let areaLang = null;
+    function lsGet(k) { try { return localStorage.getItem(k); } catch { return null; } }
+    function lsSet(k, v) { try { localStorage.setItem(k, v); } catch {} }
+
+    async function checkAreaLanguage(lat, lng) {
+      try {
+        const res = await fetch(`/api/region?lat=${lat}&lng=${lng}`);
+        if (!res.ok) return;
+        const { country, region } = await res.json();
+        const target = REGION_LANG[`${country}-${region}`] || COUNTRY_LANG[country];
+        if (!target || target === I18N.lang || lsGet('langPromptDeclined:' + target)) return;
+        showLangPrompt(target);
+      } catch {}
+    }
+    function renderLangPromptText() {
+      if (!areaLang) return;
+      const nameHere = I18N.langName(areaLang, I18N.lang);
+      document.getElementById('langPromptQ').textContent = t('lang.switchQ', { lang: nameHere });
+      document.getElementById('langPromptYes').textContent = t('lang.switchYes', { lang: nameHere });
+      document.getElementById('langPromptNo').textContent = t('lang.switchNo');
+    }
+    async function showLangPrompt(target) {
+      areaLang = target;
+      renderLangPromptText();
+      const sub = document.getElementById('langPromptSub');
+      sub.textContent = '';
+      langPrompt.classList.add('on');
+      track('language_prompt_shown', { language: target });
+      // Also ask in the local language, so a local reading over someone's shoulder understands it too
+      try {
+        const d = await I18N.preview(target);
+        const q = (d['lang.switchQ'] || '').replace(/\{lang\}/g, I18N.langName(target, target));
+        if (areaLang === target && q) sub.textContent = q;
+      } catch {}
+    }
+    I18N.onChange(renderLangPromptText);
+    document.getElementById('langPromptYes').addEventListener('click', () => {
+      track('language_changed', { language: areaLang, source: 'area_prompt' });
+      langPrompt.classList.remove('on');
+      I18N.setLang(areaLang);
+    });
+    document.getElementById('langPromptNo').addEventListener('click', () => {
+      lsSet('langPromptDeclined:' + areaLang, '1');
+      track('language_prompt_declined', { language: areaLang });
+      langPrompt.classList.remove('on');
+      areaLang = null;
+    });
 
     /* ── Request an update (feedback) ── */
     (function initFeedback() {
@@ -1788,22 +2040,22 @@ Reply ONLY with valid JSON, no markdown, no extra text:
         e.preventDefault();
         const message = msgEl.value.trim();
         const email = document.getElementById('fbEmail').value.trim();
-        if (message.length < 3) { status.textContent = 'Please tell us a bit more.'; status.className = 'fb-status err'; msgEl.focus(); return; }
-        if (email && !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) { status.textContent = 'That email doesn\'t look right.'; status.className = 'fb-status err'; return; }
-        submit.disabled = true; status.className = 'fb-status'; status.textContent = 'Sending…';
+        if (message.length < 3) { status.textContent = t('fb.tooShort'); status.className = 'fb-status err'; msgEl.focus(); return; }
+        if (email && !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) { status.textContent = t('fb.badEmail'); status.className = 'fb-status err'; return; }
+        submit.disabled = true; status.className = 'fb-status'; status.textContent = t('fb.sending');
         try {
           const res = await fetch('/api/feedback', {
             method: 'POST', headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ type: fbType, message, email, website: document.getElementById('fbWebsite').value, page: location.pathname, units: distanceUnit }),
+            body: JSON.stringify({ lang: I18N.lang, type: fbType, message, email, website: document.getElementById('fbWebsite').value, page: location.pathname, units: distanceUnit }),
           });
           const data = await res.json().catch(() => ({}));
           if (!res.ok) throw new Error(data.error || 'Something went wrong');
-          status.textContent = 'Thanks! Your request was sent. 🙌';
+          status.textContent = t('fb.thanks');
           msgEl.value = ''; document.getElementById('fbEmail').value = '';
           track('feedback_submitted', { type: fbType });
           setTimeout(close, 1800);
         } catch (err) {
-          status.textContent = err.message + ' — please try again.'; status.className = 'fb-status err';
+          status.textContent = t('fb.failed'); status.className = 'fb-status err';
           submit.disabled = false;
         }
       });
@@ -1843,7 +2095,7 @@ Reply ONLY with valid JSON, no markdown, no extra text:
       resultCard.classList.remove('on');
 
       if (!userLat || !userLng) {
-        showError('Tap <strong>📍 Find Me</strong> first so we know where to search!');
+        showError(t('err.needLocation'));
         locBtn.focus();
         track('pick_error', { reason: 'no_location' });
         return;
@@ -1862,24 +2114,24 @@ Reply ONLY with valid JSON, no markdown, no extra text:
       pickBtn.setAttribute('aria-busy', 'true');
 
       try {
-        loadingMsg.textContent = 'Searching restaurants near you…';
+        loadingMsg.textContent = t('loading.searching');
         let restaurants = await searchNearby(radiusOverride);
 
         // Auto-widen if no results
         if (!restaurants.length) {
           const widenTo = radius * 2;
           if (widenTo <= 40000) {
-            loadingMsg.textContent = 'Widening search radius…';
+            loadingMsg.textContent = t('loading.widening');
             restaurants = await searchNearby(widenTo);
             if (restaurants.length) {
-              showError(`Nothing found nearby — widened search to ${formatRadius(widenTo)} and found some options!`, true);
+              showError(t('msg.widened', { r: formatRadius(widenTo) }), true);
               track('radius_auto_widened', { from: radius, to: widenTo });
             }
           }
         }
 
         if (!restaurants.length) {
-          throw new Error('No restaurants found in your area. Try a different cuisine or a wider radius!');
+          throw new Error(t('err.noResults'));
         }
 
         // Prefer type-matched results when cuisine is selected
@@ -1888,7 +2140,7 @@ Reply ONLY with valid JSON, no markdown, no extra text:
           restaurants = filterByCuisine(restaurants, selectedCuisine);
         }
 
-        loadingMsg.textContent = 'AI is picking your perfect match…';
+        loadingMsg.textContent = t('loading.aiPicking');
         const { pick, reason } = await aiPick(restaurants, vibe, selectedCuisine);
 
         loading.classList.remove('on');
