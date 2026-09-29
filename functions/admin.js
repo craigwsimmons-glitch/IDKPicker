@@ -275,6 +275,28 @@ function dayColumns(days, rowsByDay, value, fmt = v => v.toLocaleString()) {
     <div class="axis"><span>${esc(new Date(days[0] + 'T12:00Z').toLocaleDateString('en-US', { month: 'short', day: 'numeric' }))}</span><span>Today</span></div>`;
 }
 
+// Epoch ms of the most recent midnight in America/Chicago (handles daylight saving)
+function chicagoMidnight(now = Date.now()) {
+  const parts = Object.fromEntries(new Intl.DateTimeFormat('en-US', { timeZone: 'America/Chicago', hourCycle: 'h23',
+    year: 'numeric', month: '2-digit', day: '2-digit', hour: '2-digit', minute: '2-digit', second: '2-digit' })
+    .formatToParts(now).map(p => [p.type, p.value]));
+  const sinceMidnight = ((+parts.hour * 60 + +parts.minute) * 60 + +parts.second) * 1000 + (now % 1000);
+  return now - sinceMidnight;
+}
+
+function hourColumns(tsList) {
+  const hourOf = ts => +new Intl.DateTimeFormat('en-US', { timeZone: 'America/Chicago', hour: 'numeric', hourCycle: 'h23' }).format(ts);
+  const counts = Array(24).fill(0);
+  tsList.forEach(ts => { counts[hourOf(ts)]++; });
+  const nowHour = hourOf(Date.now());
+  const max = Math.max(...counts, 1);
+  const label = h => `${h % 12 || 12} ${h < 12 ? 'AM' : 'PM'}`;
+  return `<div class="cols" role="img" aria-label="Picks by hour today">${counts.map((n, h) => `
+      <div class="col${h > nowHour ? ' future' : ''}" title="${label(h)}: ${n.toLocaleString()} pick${n === 1 ? '' : 's'}">
+        <span class="bar" style="height:${n ? Math.max(3, (n / max) * 100) : 0}%"></span></div>`).join('')}</div>
+    <div class="axis"><span>12 AM</span><span>6 AM</span><span>12 PM</span><span>6 PM</span><span>11 PM</span></div>`;
+}
+
 function lastDays(n) {
   const out = [];
   for (let i = n - 1; i >= 0; i--) out.push(new Date(Date.now() - i * 864e5).toISOString().slice(0, 10));
@@ -285,34 +307,41 @@ async function viewUsage({ env }, url) {
   const h = db(env);
   if (!h) return d1Missing;
   await h.ready;
-  const range = [7, 30, 90].includes(+url.searchParams.get('days')) ? +url.searchParams.get('days') : 30;
-  const days = lastDays(range), since = days[0];
+  const param = url.searchParams.get('days');
+  const isToday = param === 'today';
+  const range = isToday ? 1 : [7, 30, 90].includes(+param) ? +param : 30;
+  const days = lastDays(range);
+  // "Today" = since midnight Central time; day ranges start at midnight UTC of the first day
+  const sinceMs = isToday ? chicagoMidnight() : Date.parse(days[0] + 'T00:00:00Z');
   const q = (sql, ...b) => h.d.prepare(sql).bind(...b).all().then(r => r.results || []);
   // keep the table small: drop events older than 180 days
   await h.d.prepare('DELETE FROM events WHERE ts < ?').bind(Date.now() - 180 * 864e5).run().catch(() => {});
 
-  const [perDay, cities, langs, cuisines, places, vibes, totals] = await Promise.all([
-    q(`SELECT day, COUNT(*) n, SUM(again) again, SUM(ai) ai FROM events WHERE kind='pick' AND day >= ? GROUP BY day`, since),
-    q(`SELECT COALESCE(city,'Unknown') city, COALESCE(country,'') country, COUNT(*) n FROM events WHERE kind='pick' AND day >= ? GROUP BY city, country ORDER BY n DESC LIMIT 10`, since),
-    q(`SELECT COALESCE(lang,'en') lang, COUNT(*) n FROM events WHERE kind='pick' AND day >= ? GROUP BY lang ORDER BY n DESC LIMIT 10`, since),
-    q(`SELECT COALESCE(NULLIF(cuisine,''),'any') cuisine, COUNT(*) n FROM events WHERE kind='pick' AND day >= ? GROUP BY 1 ORDER BY n DESC LIMIT 10`, since),
-    q(`SELECT restaurant, COUNT(*) n FROM events WHERE kind='pick' AND restaurant IS NOT NULL AND day >= ? GROUP BY restaurant ORDER BY n DESC LIMIT 10`, since),
+  const [perDay, cities, langs, cuisines, places, vibes, todayTs, totals] = await Promise.all([
+    q(`SELECT day, COUNT(*) n, SUM(again) again, SUM(ai) ai FROM events WHERE kind='pick' AND ts >= ? GROUP BY day`, sinceMs),
+    q(`SELECT COALESCE(city,'Unknown') city, COALESCE(country,'') country, COUNT(*) n FROM events WHERE kind='pick' AND ts >= ? GROUP BY city, country ORDER BY n DESC LIMIT 10`, sinceMs),
+    q(`SELECT COALESCE(lang,'en') lang, COUNT(*) n FROM events WHERE kind='pick' AND ts >= ? GROUP BY lang ORDER BY n DESC LIMIT 10`, sinceMs),
+    q(`SELECT COALESCE(NULLIF(cuisine,''),'any') cuisine, COUNT(*) n FROM events WHERE kind='pick' AND ts >= ? GROUP BY 1 ORDER BY n DESC LIMIT 10`, sinceMs),
+    q(`SELECT restaurant, COUNT(*) n FROM events WHERE kind='pick' AND restaurant IS NOT NULL AND ts >= ? GROUP BY restaurant ORDER BY n DESC LIMIT 10`, sinceMs),
     q(`SELECT ts, vibe, city FROM events WHERE kind='pick' AND vibe IS NOT NULL AND vibe <> '' ORDER BY id DESC LIMIT 20`),
-    q(`SELECT COUNT(*) n, SUM(again) again, SUM(ai) ai, SUM(units='km') km, COUNT(DISTINCT city) cities FROM events WHERE kind='pick' AND day >= ?`, since),
+    isToday ? q(`SELECT ts FROM events WHERE kind='pick' AND ts >= ?`, sinceMs) : Promise.resolve([]),
+    q(`SELECT COUNT(*) n, SUM(again) again, SUM(ai) ai, SUM(units='km') km, COUNT(DISTINCT city) cities FROM events WHERE kind='pick' AND ts >= ?`, sinceMs),
   ]);
   const t = totals[0] || {};
   const byDay = Object.fromEntries(perDay.map(r => [r.day, r]));
   const pct = (a, b) => b ? Math.round((a / b) * 100) + '%' : '—';
 
   return `
-    <nav class="pills">${[7, 30, 90].map(d => `<a href="/admin?tab=usage&days=${d}" class="${d === range ? 'on' : ''}">Last ${d} days</a>`).join('')}</nav>
+    <nav class="pills"><a href="/admin?tab=usage&days=today" class="${isToday ? 'on' : ''}">Today</a>${[7, 30, 90].map(d => `<a href="/admin?tab=usage&days=${d}" class="${!isToday && d === range ? 'on' : ''}">Last ${d} days</a>`).join('')}</nav>
     <div class="tiles">
       <div class="tile"><div class="big">${(t.n || 0).toLocaleString()}</div><div class="cap">Picks</div></div>
       <div class="tile"><div class="big">${pct(t.again || 0, t.n)}</div><div class="cap">Tapped “Pick Again”</div></div>
       <div class="tile"><div class="big">${(t.cities || 0).toLocaleString()}</div><div class="cap">Cities</div></div>
       <div class="tile"><div class="big">${pct(t.km || 0, t.n)}</div><div class="cap">Use kilometers</div></div>
     </div>
-    <section class="card"><h3>Picks per day</h3>${dayColumns(days, byDay, r => r.n || 0)}</section>
+    ${isToday
+      ? `<section class="card"><h3>Picks by hour <small>(Central time)</small></h3>${hourColumns(todayTs.map(r => r.ts))}</section>`
+      : `<section class="card"><h3>Picks per day</h3>${dayColumns(days, byDay, r => r.n || 0)}</section>`}
     <div class="grid2">
       <section class="card"><h3>Top cities <small>(visitor location)</small></h3>${barList(cities, r => [r.city, r.country].filter(Boolean).join(', '))}</section>
       <section class="card"><h3>Languages</h3>${barList(langs, r => `${langName(r.lang)} (${r.lang})`)}</section>
@@ -443,7 +472,7 @@ async function viewTranslations({ env }, url) {
   const h = db(env);
   if (h) {
     await h.ready;
-    const rows = (await h.d.prepare(`SELECT COALESCE(lang,'en') lang, COUNT(*) n FROM events WHERE kind='pick' AND day >= ? GROUP BY lang`).bind(lastDays(30)[0]).all()).results || [];
+    const rows = (await h.d.prepare(`SELECT COALESCE(lang,'en') lang, COUNT(*) n FROM events WHERE kind='pick' AND ts >= ? GROUP BY lang`).bind(lastDays(30)[0]).all()).results || [];
     demand = Object.fromEntries(rows.map(r => [r.lang, r.n]));
   }
   const langs = [...new Set([...STATIC_LANGS, ...cached, ...Object.keys(demand).filter(l => l !== 'en')])];
@@ -517,6 +546,7 @@ function page(tab, msg, body, who) {
   .cols { display:flex; align-items:flex-end; gap:2px; height:120px; border-bottom:1px solid var(--border); }
   .col { flex:1; height:100%; display:flex; align-items:flex-end; cursor:default; } .col:hover { background:var(--track); }
   .col .bar { display:block; width:100%; background:var(--accent); border-radius:4px 4px 0 0; }
+  .col.future { opacity:.35; }
   .axis { display:flex; justify-content:space-between; color:var(--muted); font-size:.75rem; margin-top:4px; }
   .vibes { list-style:none; padding:0; margin:0; display:grid; gap:6px; } .vibes li { display:flex; justify-content:space-between; gap:12px; border-bottom:1px solid var(--border); padding-bottom:6px; } .vibes small { white-space:nowrap; }
   table { width:100%; border-collapse:collapse; font-size:.85rem; } th, td { text-align:left; padding:6px 8px; border-bottom:1px solid var(--border); vertical-align:top; } th { color:var(--muted); font-weight:600; }
