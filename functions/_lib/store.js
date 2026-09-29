@@ -35,6 +35,7 @@ export function db(env) {
         country TEXT, city TEXT, lang TEXT, cuisine TEXT, vibe TEXT, again INTEGER DEFAULT 0,
         ai INTEGER DEFAULT 0, units TEXT, restaurant TEXT)`),
       env.DB.prepare(`CREATE INDEX IF NOT EXISTS events_day ON events(day, kind)`),
+      env.DB.prepare(`CREATE INDEX IF NOT EXISTS events_ts ON events(kind, ts)`),
       env.DB.prepare(`CREATE TABLE IF NOT EXISTS daily (
         day TEXT PRIMARY KEY, picks INTEGER DEFAULT 0, ai_calls INTEGER DEFAULT 0, fallbacks INTEGER DEFAULT 0,
         translations INTEGER DEFAULT 0, in_tokens INTEGER DEFAULT 0, out_tokens INTEGER DEFAULT 0, blocked INTEGER DEFAULT 0)`),
