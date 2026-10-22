@@ -1,11 +1,14 @@
 // GET /api/stats?key=… — read-only usage summary for the daily morning brief.
 //
-// Cloudflare Pages setting (Settings → Variables and Secrets):
-//   STATS_KEY  secret — a long random string. Without it this endpoint is disabled (404).
+// Access: the caller's key is checked against STATS_KEY_SHA256 below (a SHA-256 of the
+// key, so the key itself never lives in the repo). Optional override in Cloudflare Pages:
+//   STATS_KEY  secret — if set, it is accepted too.
 //
 // Returns anonymous aggregates only (counts, cities, estimated AI cost). No emails,
 // feedback text or personal data. Days are Central time.
 import { json, db, costOf } from '../_lib/store.js';
+
+const STATS_KEY_SHA256 = 'b9a9fc2c99a44f18e4bbe90ffbf4685aa82fe2249f2e8755063070dd1cea9b57';
 
 const NO_STORE = { 'Cache-Control': 'no-store', 'X-Robots-Tag': 'noindex' };
 
@@ -17,18 +20,24 @@ function chicagoMidnight(at = Date.now()) {
 }
 const centralDate = ms => new Date(ms).toLocaleDateString('en-CA', { timeZone: 'America/Chicago' });
 
-function keyOk(given, expected) {
-  if (!expected || typeof given !== 'string' || given.length !== expected.length) return false;
+function same(a, b) {
+  if (!b || typeof a !== 'string' || a.length !== b.length) return false;
   let diff = 0;
-  for (let i = 0; i < given.length; i++) diff |= given.charCodeAt(i) ^ expected.charCodeAt(i);
+  for (let i = 0; i < a.length; i++) diff |= a.charCodeAt(i) ^ b.charCodeAt(i);
   return diff === 0;
+}
+async function keyOk(given, env) {
+  if (!given) return false;
+  if (env.STATS_KEY && same(given, env.STATS_KEY)) return true;
+  const digest = await crypto.subtle.digest('SHA-256', new TextEncoder().encode(given));
+  const hex = [...new Uint8Array(digest)].map(b => b.toString(16).padStart(2, '0')).join('');
+  return same(hex, STATS_KEY_SHA256);
 }
 
 export async function onRequestGet({ request, env }) {
-  if (!env.STATS_KEY) return new Response('Not found', { status: 404, headers: NO_STORE });
   const url = new URL(request.url);
   const given = url.searchParams.get('key') || (request.headers.get('Authorization') || '').replace(/^Bearer\s+/i, '');
-  if (!keyOk(given, env.STATS_KEY)) return json({ error: 'Unauthorized' }, 401, NO_STORE);
+  if (!(await keyOk(given, env))) return json({ error: 'Unauthorized' }, 401, NO_STORE);
 
   const h = db(env);
   if (!h) return json({ error: 'D1 binding DB is missing' }, 503, NO_STORE);
