@@ -31,6 +31,7 @@ jobs:
       - name: Save to brief-data branch
         run: |
           cp brief-data/latest.json "$RUNNER_TEMP/latest.json"
+          rm -rf brief-data   # untracked; would block switching to the existing branch
           git config user.name "github-actions[bot]"
           git config user.email "41898283+github-actions[bot]@users.noreply.github.com"
           if git fetch --depth=1 origin brief-data 2>/dev/null; then
