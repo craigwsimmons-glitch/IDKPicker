@@ -1,0 +1,48 @@
+name: Morning brief data
+
+# Checks the sites and collects stats each morning before Craig's 5:09am CT brief,
+# then saves them to the `brief-data` branch (brief-data/latest.json) for the brief to read.
+on:
+  schedule:
+    - cron: '17 8 * * *'   # 08:17 UTC = 3:17am CDT / 2:17am CST
+    - cron: '47 9 * * *'   # backup run in case the first is delayed or fails
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+concurrency:
+  group: brief-data
+  cancel-in-progress: false
+
+jobs:
+  collect:
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+      - name: Collect
+        env:
+          IDKPICKER_STATS_KEY: ${{ secrets.IDKPICKER_STATS_KEY }}
+        run: node .github/scripts/brief-data.mjs
+      - name: Save to brief-data branch
+        run: |
+          cp brief-data/latest.json "$RUNNER_TEMP/latest.json"
+          git config user.name "github-actions[bot]"
+          git config user.email "41898283+github-actions[bot]@users.noreply.github.com"
+          if git fetch --depth=1 origin brief-data 2>/dev/null; then
+            git checkout -B brief-data FETCH_HEAD
+          else
+            git checkout --orphan brief-data
+            git rm -rf --cached . >/dev/null
+          fi
+          git clean -fdx -q
+          mkdir -p brief-data
+          cp "$RUNNER_TEMP/latest.json" brief-data/latest.json
+          git add brief-data/latest.json
+          # [skip ci] keeps Cloudflare Pages from building this branch
+          git commit -m "Brief data $(date -u +%F) [skip ci]" || echo "No change"
+          git push origin brief-data
